@@ -687,6 +687,8 @@ body.dark .db-icon{ filter:drop-shadow(0 10px 22px rgba(57,224,255,.25)) }
 .typing-bubble span:nth-child(2){ animation-delay:.15s }
 .typing-bubble span:nth-child(3){ animation-delay:.3s }
 @keyframes typingBounce{ 0%,60%,100%{ transform:translateY(0); opacity:.5 } 30%{ transform:translateY(-4px); opacity:1 } }
+.typing-label{ font-size:.74rem; font-weight:600; color:var(--text-2); font-style:italic }
+.typing-label.hidden{ display:none }
 
 /* ============================================================
    COMPOSER
@@ -862,6 +864,21 @@ body.dark .db-icon{ filter:drop-shadow(0 10px 22px rgba(57,224,255,.25)) }
 .modal-handle{ width:36px; height:4px; border-radius:3px; background:var(--border-2); margin:0 auto 1rem }
 .modal h3{ font-size:1.05rem; font-weight:800; margin-bottom:.2rem; letter-spacing:-.01em }
 .modal-sub{ font-size:.82rem; color:var(--text-2); margin-bottom:1rem; font-weight:500; line-height:1.5 }
+
+.fc-info-list{ display:flex; flex-direction:column; gap:1rem; margin:1.1rem 0 1.2rem }
+.fc-info-row{ display:flex; align-items:flex-start; gap:.75rem; font-size:.83rem; color:var(--text-2); line-height:1.5; font-weight:500 }
+.fc-info-row b{ color:var(--text); font-weight:700 }
+.fc-info-ic{
+  width:2.1rem; height:2.1rem; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--primary-soft); color:var(--primary);
+}
+.fc-info-ic svg{ width:17px; height:17px }
+.fc-dont-show-row{
+  display:flex; align-items:center; gap:.5rem; font-size:.78rem; font-weight:600;
+  color:var(--text-2); cursor:pointer; padding:.2rem;
+}
+.fc-dont-show-row input{ width:16px; height:16px; accent-color:var(--primary); cursor:pointer }
 
 .opt-list{ display:flex; flex-direction:column; gap:.15rem }
 .opt-item{
@@ -1195,6 +1212,26 @@ body.dark .db-icon{ filter:drop-shadow(0 10px 22px rgba(57,224,255,.25)) }
 #ch-notif-btn.off{ color:var(--text-3) }
 #ch-notif-btn svg{ width:18px; height:18px }
 
+/* Pinned message bar */
+#pinned-bar{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.5rem .9rem; font-size:.78rem; font-weight:600;
+  background: var(--primary-soft); color:var(--primary); border-bottom:1px solid var(--border);
+  flex-shrink:0; position:relative; z-index:14; cursor:pointer;
+}
+#pinned-bar.hidden{ display:none }
+.pinned-ic{ flex-shrink:0; display:flex; align-items:center }
+.pinned-ic svg{ width:15px; height:15px }
+.pinned-text{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text) }
+.pinned-text b{ color:var(--primary); font-weight:700 }
+.pinned-unpin{
+  border:none; background:none; color:inherit; opacity:.6; cursor:pointer; flex-shrink:0;
+  padding:.2rem; display:flex; align-items:center; border-radius:50%;
+}
+.pinned-unpin:hover{ opacity:1; background:rgba(0,0,0,.06) }
+.pinned-unpin svg{ width:14px; height:14px }
+.msg-row.pin-jump-highlight .bubble{ animation: searchJumpPulse 1.6s ease }
+
 /* Connection status bar */
 #conn-status-bar{
   display:none; align-items:center; gap:.5rem;
@@ -1205,7 +1242,10 @@ body.dark .db-icon{ filter:drop-shadow(0 10px 22px rgba(57,224,255,.25)) }
 body.dark #conn-status-bar{ color:#ffcf80 }
 #conn-status-bar.show{ display:flex; animation: floatUp .25s cubic-bezier(.22,1,.36,1) both }
 #conn-status-bar.offline{ background: var(--danger-soft); color:var(--danger) }
+#conn-status-textwrap{ flex:1; display:flex; flex-direction:column; gap:.05rem; min-width:0 }
 #conn-status-text{ flex:1 }
+#conn-status-hint{ font-size:.66rem; font-weight:600; opacity:.85 }
+#conn-status-hint.hidden{ display:none }
 #conn-status-retry{
   border:none; background:rgba(0,0,0,.08); color:inherit; font-weight:800; font-size:.7rem;
   padding:.32rem .7rem; border-radius:999px; cursor:pointer; flex-shrink:0; font-family:'Inter',sans-serif;
@@ -1351,7 +1391,7 @@ body.dark #conn-status-bar{ color:#ffcf80 }
     <div class="room-wrap">
       <div class="room-intro">
         <h2>Start a private chat</h2>
-        <p>Create a room for your partner to join, or enter a code they've shared with you.</p>
+        <p>Create a room for your partner to join, or enter a code they've shared with you. Keep this open on both sides while you chat — there's no server keeping the room alive for you.</p>
       </div>
       <div class="room-tabs">
         <button class="room-tab active" id="tab-create" data-tab="create">Create room</button>
@@ -1453,9 +1493,17 @@ body.dark #conn-status-bar{ color:#ffcf80 }
       </div>
     </div>
 
+    <div id="pinned-bar" class="hidden">
+      <div class="pinned-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l1.5 5.5L19 9l-5 3.5L15 18l-3-3.5L9 18l1-5.5L5 9l5.5-1.5L12 2z"/></svg></div>
+      <div class="pinned-text" id="pinned-text"></div>
+      <button class="pinned-unpin" id="pinned-unpin-btn" title="Unpin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
     <div id="conn-status-bar">
       <span class="spinner dark-dot"></span>
-      <span id="conn-status-text">Reconnecting…</span>
+      <span id="conn-status-textwrap"><span id="conn-status-text">Reconnecting…</span><span id="conn-status-hint" class="hidden"></span></span>
       <button id="conn-status-retry">Retry now</button>
     </div>
 
@@ -1468,7 +1516,8 @@ body.dark #conn-status-bar{ color:#ffcf80 }
 
     <div class="typing-row hidden" id="typing-row">
       <div class="ch-avatar" style="width:1.8rem;height:1.8rem;font-size:.7rem" id="typing-av"></div>
-      <div class="typing-bubble"><span></span><span></span><span></span></div>
+      <div class="typing-bubble" id="typing-bubble"><span></span><span></span><span></span></div>
+      <div class="typing-label hidden" id="typing-label">recording a voice note…</div>
     </div>
 
     <div class="reply-bar" id="reply-bar">
@@ -1610,6 +1659,32 @@ body.dark #conn-status-bar{ color:#ffcf80 }
   </div>
 </div>
 
+<!-- ============ MODAL: FIRST-CONNECT INFO CARD ============ -->
+<div class="modal-overlay" id="modal-first-connect">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-handle"></div>
+    <h3 style="text-align:center">You're connected 🎉</h3>
+    <div class="fc-info-list">
+      <div class="fc-info-row">
+        <div class="fc-info-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1l8 4v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-4z"/></svg></div>
+        <div><b>No server in the middle.</b> Messages, photos and calls travel directly between your two devices. We can't read them.</div>
+      </div>
+      <div class="fc-info-row">
+        <div class="fc-info-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"/></svg></div>
+        <div><b>Both of you need to keep this open.</b> If either tab/app fully closes, the room ends — there's no server to keep it running in the background.</div>
+      </div>
+      <div class="fc-info-row">
+        <div class="fc-info-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
+        <div><b>"Leave & delete room" is permanent.</b> It disconnects you both and the room code stops working — nothing is recoverable after that.</div>
+      </div>
+    </div>
+    <label class="fc-dont-show-row">
+      <input type="checkbox" id="fc-dont-show-again"> Don't show this again
+    </label>
+    <button class="btn btn-primary" id="fc-info-got-it-btn" style="margin-top:.4rem">Got it</button>
+  </div>
+</div>
+
 <!-- ============ QR CODE SCANNER (camera) ============ -->
 <div class="qr-scan-overlay" id="qr-scan-overlay">
   <div class="qrs-top">
@@ -1634,6 +1709,7 @@ body.dark #conn-status-bar{ color:#ffcf80 }
 <!-- ============ MODAL: MESSAGE CONTEXT MENU ============ -->
 <div id="msg-ctx-menu">
   <button class="ctx-item" id="mctx-reply"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>Reply</button>
+  <button class="ctx-item" id="mctx-pin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2l1.5 5.5L19 9l-5 3.5L15 18l-3-3.5L9 18l1-5.5L5 9l5.5-1.5L12 2z"/></svg><span id="mctx-pin-label">Pin</span></button>
   <button class="ctx-item" id="mctx-react"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>React</button>
   <button class="ctx-item" id="mctx-copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy text</button>
   <button class="ctx-item" id="mctx-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.12 2.12 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
@@ -1762,6 +1838,12 @@ let autoClear     = localStorage.getItem('duo-autoclear') === '1';
 let autoClearMins = parseInt(localStorage.getItem('duo-autoclear-mins') || '1440', 10); // default 24h
 let isMuted       = localStorage.getItem('duo-muted') === '1';
 
+// Lightweight cooldown on generating brand-new rooms — prevents accidental
+// rapid-fire taps (or anything automated) from hammering the signaling
+// server with a burst of new peer connections in quick succession.
+let lastRoomCreateAt = 0;
+const ROOM_CREATE_COOLDOWN_MS = 4000;
+
 let peer = null;
 let conn = null;            // the single active data connection (peer-to-peer)
 let roomLocked = false;     // true once 2 participants are joined
@@ -1772,6 +1854,7 @@ let reconnectTimeout = null;
 let leavingInProgress = false; // true once partner-left/leave-room teardown has started, to avoid a duplicate disconnect toast
 let messages = []; // populated asynchronously from IndexedDB — see loadMessagesFromStore() near boot()
 let reactionState = (() => { try{ return JSON.parse(localStorage.getItem('duo-reactions') || '{}'); }catch(e){ return {}; } })();
+let pinnedMessageId = localStorage.getItem('duo-pinned') || null;
 let replyingTo = null;
 let pendingMedia = null;
 let isRecording = false, mediaRec = null, audioChunks = [];
@@ -1791,6 +1874,7 @@ let notifPermAsked = localStorage.getItem('duo-notifasked') === '1';
 let reconnecting = false;
 let reconnectAttempt = 0;
 let reconnectBackoffTimer = null;
+let hostWaitHintTimer = null;
 let unseenCount = 0;
 let userNearBottom = true;
 
@@ -1969,6 +2053,10 @@ function removeTrimmedRows(ids){
     // If the oldest mounted message itself got trimmed, the window
     // boundary is gone — re-render cleanly rather than tracking a dangling id.
     if (oldestMountedId === id) oldestMountedId = null;
+    // Auto-trim/local clears are not broadcast — if the pinned message was
+    // among the ids removed here, our own copy is gone, so unpin and tell
+    // the partner rather than leaving a dangling reference on our side.
+    if (pinnedMessageId === id) unpinMessage(true);
   });
   if (oldestMountedId === null && messages.length) renderAllMessages();
 }
@@ -2244,8 +2332,17 @@ function copyText(t){
 // --- HOST a new room ---
 function startHosting(){
   if (peer && myRole === 'host' && !roomLocked) return; // already hosting
+  const isResuming = myRoomCode && localStorage.getItem('duo-role') === 'host';
+  if (!isResuming){
+    const now = Date.now();
+    if (now - lastRoomCreateAt < ROOM_CREATE_COOLDOWN_MS){
+      toast('⏳ Just a moment — try again in a second');
+      return;
+    }
+    lastRoomCreateAt = now;
+  }
   myRole = 'host';
-  myRoomCode = myRoomCode && localStorage.getItem('duo-role')==='host' ? myRoomCode : generateRoomCode();
+  myRoomCode = isResuming ? myRoomCode : generateRoomCode();
   $('my-token-display').textContent = myRoomCode;
   $('waiting-indicator').classList.remove('hidden');
   initPeer(roomPeerId(myRoomCode), true);
@@ -2531,14 +2628,28 @@ function initPeerForRoom(){
 //  dropped connection, with simple capped backoff, plus a status
 //  bar so the person can see what's happening (and retry manually).
 // ════════════════════════════════════════════════════════════
-function showConnStatus(text, offline){
+function showConnStatus(text, offline, hint){
   const bar = $('conn-status-bar');
   if (!bar) return;
   $('conn-status-text').textContent = text;
+  const hintEl = $('conn-status-hint');
+  if (hintEl){
+    if (hint){ hintEl.textContent = hint; hintEl.classList.remove('hidden'); }
+    else hintEl.classList.add('hidden');
+  }
   bar.classList.toggle('offline', !!offline);
   bar.classList.add('show');
 }
 function hideConnStatus(){ const bar = $('conn-status-bar'); if (bar) bar.classList.remove('show'); }
+
+// After enough failed attempts, the most likely culprit is the network
+// itself (not just bad luck) — surface a concrete, actionable hint instead
+// of leaving people staring at "Reconnecting…" with no idea what to try.
+function reconnectHintFor(attempt){
+  if (attempt >= 6) return 'Taking a while — try switching between WiFi and mobile data';
+  if (attempt >= 3) return 'This can take longer on slow or restricted networks';
+  return null;
+}
 
 function attemptAutoReconnect(){
   if (leavingInProgress || !myRoomCode) return;
@@ -2550,6 +2661,14 @@ function attemptAutoReconnect(){
     showConnStatus('Waiting for ' + (peerName || 'your partner') + ' to reconnect…');
     // Host's own peer object stays alive and listens for a fresh incoming
     // connection — nothing to redial, just wait (handled in peer.on('connection')).
+    // After a while, surface a hint — there's nothing more to "try" on this
+    // side, but at least make clear it might be on their end, not stuck.
+    clearTimeout(hostWaitHintTimer);
+    hostWaitHintTimer = setTimeout(() => {
+      if (reconnecting && conn?.open !== true){
+        showConnStatus('Waiting for ' + (peerName || 'your partner') + ' to reconnect…', false, "Taking a while? It's likely on their end — their connection or device");
+      }
+    }, 12000);
   } else {
     showConnStatus('Reconnecting…');
     reconnectAttempt = 0;
@@ -2561,6 +2680,7 @@ function guestReconnectLoop(){
   if (!reconnecting || leavingInProgress || (conn && conn.open)) return;
   const delays = [1200, 2500, 4500, 7000, 10000];
   const delay = delays[Math.min(reconnectAttempt, delays.length - 1)];
+  showConnStatus('Reconnecting…', false, reconnectHintFor(reconnectAttempt));
   reconnectAttempt++;
   clearTimeout(reconnectBackoffTimer);
   reconnectBackoffTimer = setTimeout(() => {
@@ -2591,6 +2711,7 @@ function guestReconnectLoop(){
 function stopAutoReconnect(){
   reconnecting = false; reconnectAttempt = 0;
   clearTimeout(reconnectBackoffTimer);
+  clearTimeout(hostWaitHintTimer);
   hideConnStatus();
 }
 
@@ -2608,6 +2729,7 @@ window.addEventListener('online', () => {
 function finalizeConnection(){
   isConnecting = false;
   stopAutoReconnect();
+  const isFirstEverConnectionInRoom = localStorage.getItem('duo-connected') !== '1';
   localStorage.setItem('duo-connected', '1'); // a real handshake has now happened — safe to resume straight into chat on reload
   clearTimeout(reconnectTimeout);
   // Auto-close QR modal if open
@@ -2621,7 +2743,15 @@ function finalizeConnection(){
   conn.send({ type:'request-history-check' });
   wireIncomingCalls(peer);
   setTimeout(flushOutbox, 400); // resend anything that was queued while offline
+  if (isFirstEverConnectionInRoom && localStorage.getItem('duo-hide-first-connect-info') !== '1'){
+    setTimeout(() => openModal('modal-first-connect'), 700); // after the connect toast/sound settle in
+  }
 }
+
+$('fc-info-got-it-btn').addEventListener('click', () => {
+  if ($('fc-dont-show-again').checked) localStorage.setItem('duo-hide-first-connect-info', '1');
+  closeModal('modal-first-connect');
+});
 
 function setupConnHandlers(){
   if (!conn) return;
@@ -2633,6 +2763,7 @@ function setupConnHandlers(){
     roomLocked = false;   // free the room — the partner (or this same partner reconnecting) must be allowed back in
     conn = null;
     updateChatHeader();
+    showTypingIndicator(false); // a disconnected partner can't still be typing or recording
     if (!leavingInProgress){
       toast('⚠️ ' + (peerName||'Partner') + ' disconnected');
       attemptAutoReconnect();
@@ -2644,6 +2775,7 @@ function setupConnHandlers(){
     roomLocked = false;
     conn = null;
     updateChatHeader();
+    showTypingIndicator(false);
     if (!leavingInProgress) attemptAutoReconnect();
   });
 }
@@ -2709,7 +2841,7 @@ function handleData(data){
     }
     case 'delivered': updateMsgStatus(data.msgId, 'delivered'); break;
     case 'read': updateMsgStatus(data.msgId, 'read'); break;
-    case 'typing': showTypingIndicator(data.on); break;
+    case 'typing': showTypingIndicator(data.on, data.kind); break;
     case 'reaction': applyReaction(data.msgId, data.emoji, 'them'); break;
     case 'edit-message': editMessage(data.msgId, data.text, false); break;
     case 'delete-message': removeMessageFromDom(data.msgId, true); break;
@@ -2718,6 +2850,8 @@ function handleData(data){
     case 'request-history-check': markVisibleAsRead(); break;
     case 'rename': peerName = data.name || peerName; localStorage.setItem('duo-peername', peerName); updateChatHeader(); updateCallNamesIfActive(); break;
     case 'call-busy': toast('📵 ' + (peerName||'Partner') + ' is on another call'); endCall(); break;
+    case 'pin-message': pinMessage(data.msgId, false); break;
+    case 'unpin-message': unpinMessage(false); break;
   }
 }
 
@@ -2779,7 +2913,8 @@ function resetToWelcome(){
   localStorage.removeItem('duo-room'); localStorage.removeItem('duo-role'); localStorage.removeItem('duo-peername'); localStorage.removeItem('duo-connected');
   sessionStorage.removeItem('duo-msgs'); localStorage.removeItem('duo-msgs');
   sessionStorage.removeItem('duo-reactions'); localStorage.removeItem('duo-reactions');
-  messages = []; reactionState = {}; myRoomCode=''; conn=null; roomLocked=false; peerName=''; peerOnline=false;
+  localStorage.removeItem('duo-pinned');
+  messages = []; reactionState = {}; pinnedMessageId = null; myRoomCode=''; conn=null; roomLocked=false; peerName=''; peerOnline=false;
   idbClearMessages();
   if (peer){ try{ peer.destroy() }catch(e){} peer=null; }
   showScreen('screen-welcome');
@@ -2914,6 +3049,7 @@ function renderAllMessages(){
   unseenCount = 0; updateScrollBadge();
   userNearBottom = true;
   const btn = $('scroll-bottom-btn'); if (btn) btn.classList.remove('show');
+  renderPinnedBar();
   if (!messages.length){
     oldestMountedId = null;
     wrap.innerHTML = `<div class="encrypt-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1l8 4v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-4z"/></svg>Messages travel directly between your two devices. Say hello 👋</div>`;
@@ -3108,17 +3244,19 @@ msgInput.addEventListener('keydown', e => {
 });
 refreshSendBtnIcon();
 
-function sendTypingSignal(on){
+function sendTypingSignal(on, kind){
   if (!conn?.open) return;
-  conn.send({ type:'typing', on });
+  conn.send({ type:'typing', on, kind });
   clearTimeout(sendTypingTimer);
   if (on) sendTypingTimer = setTimeout(()=> conn.send({ type:'typing', on:false }), 2200);
 }
 
-function showTypingIndicator(on){
+function showTypingIndicator(on, kind){
   const row = $('typing-row');
+  const label = $('typing-label');
   $('typing-av').textContent = aLetter(peerName);
   row.classList.toggle('hidden', !on);
+  if (label) label.classList.toggle('hidden', kind !== 'recording');
   if (on) scrollToBottom();
 }
 
@@ -3337,6 +3475,11 @@ async function startVoiceRecording(){
       $('rec-indicator').classList.remove('show');
       sendBtn.classList.remove('recording');
       isRecording = false;
+      // onstop is the one event guaranteed to fire whenever recording ends,
+      // however it ended (manual stop, error, track loss) — clearing the
+      // recording signal here (rather than only in stopVoiceRecording) means
+      // the partner's indicator can never get stuck on.
+      if (conn?.open){ try{ conn.send({ type:'typing', on:false }) }catch(e){} }
       if (!audioChunks.length || recSeconds < 1) return;
       const blob = new Blob(audioChunks, { type: mediaRec.mimeType || mime || 'audio/webm' });
       const reader = new FileReader();
@@ -3357,6 +3500,11 @@ async function startVoiceRecording(){
     $('rec-indicator').classList.add('show');
     $('rec-time').textContent = '0:00';
     recTimerInterval = setInterval(()=>{ recSeconds++; $('rec-time').textContent = fmtSecs(recSeconds); }, 1000);
+    // Let the partner know we're recording a voice note — unlike the plain
+    // typing signal, this has no auto-clear timeout, since a recording can
+    // easily run past the typing indicator's short 2.2s window. It's turned
+    // off explicitly in onstop above.
+    if (conn?.open){ try{ conn.send({ type:'typing', on:true, kind:'recording' }) }catch(e){} }
   }catch(e){ toast('🎙️ Microphone access denied'); }
 }
 function stopVoiceRecording(){ if (isRecording) mediaRec?.stop(); }
@@ -3452,6 +3600,7 @@ function showMsgContextMenu(x, y, msgId){
   $('mctx-edit').style.display = (msg && msg.type==='text' && msg.from==='me') ? 'flex' : 'none';
   // Only show delete for your own messages
   $('mctx-delete').style.display = (msg && msg.from==='me') ? 'flex' : 'none';
+  $('mctx-pin-label').textContent = (pinnedMessageId === msgId) ? 'Unpin' : 'Pin';
   menu.classList.add('show');
 }
 document.addEventListener('click', e => { if (!e.target.closest('#msg-ctx-menu')) $('msg-ctx-menu').classList.remove('show'); });
@@ -3460,6 +3609,12 @@ $('mctx-reply').addEventListener('click', () => {
   const msg = messages.find(m=>m.id===currentCtxMsgId);
   if (msg){ const snippet = msg.type==='text' ? msg.text : ('📎 ' + (msg.type==='image'?'Photo':msg.type==='video'?'Video':msg.type==='audio'?'Voice message':msg.name||'File')); setReply(snippet, msg.from); }
   $('msg-ctx-menu').classList.remove('show');
+});
+$('mctx-pin').addEventListener('click', () => {
+  const mid = currentCtxMsgId;
+  $('msg-ctx-menu').classList.remove('show');
+  if (pinnedMessageId === mid) unpinMessage(true);
+  else pinMessage(mid, true);
 });
 $('mctx-react').addEventListener('click', () => {
   const mid = currentCtxMsgId;
@@ -3509,6 +3664,53 @@ function refreshMessageRow(msgId){
   const meta = row.querySelector('.msg-meta');
   if (meta) meta.innerHTML = `${msg.edited ? '<span class="edited-tag">Edited</span>' : ''}<span>${fmtTime(msg.time)}</span>${msg.from==='me' ? tickIcon(msg.status||'sent') : ''}`;
 }
+
+// ════════════════════════════════════════════════════════════
+//  PINNED MESSAGE — either person can pin one message (text,
+//  photo, etc.) to a bar under the header. Synced to the partner
+//  and persisted per-room, same as reactions.
+// ════════════════════════════════════════════════════════════
+function pinSnippetFor(msg){
+  if (!msg) return '';
+  if (msg.type === 'text') return msg.text;
+  const labels = { image:'📷 Photo', video:'🎥 Video', audio:'🎤 Voice message', file:'📎 ' + (msg.name || 'File') };
+  return labels[msg.type] || 'Message';
+}
+function pinMessage(msgId, broadcast){
+  const msg = messages.find(m => m.id === msgId);
+  if (!msg) return;
+  pinnedMessageId = msgId;
+  try{ localStorage.setItem('duo-pinned', msgId); }catch(e){}
+  renderPinnedBar();
+  if (broadcast && conn?.open){ try{ conn.send({ type:'pin-message', msgId }) }catch(e){} }
+}
+function unpinMessage(broadcast){
+  pinnedMessageId = null;
+  try{ localStorage.removeItem('duo-pinned'); }catch(e){}
+  renderPinnedBar();
+  if (broadcast && conn?.open){ try{ conn.send({ type:'unpin-message' }) }catch(e){} }
+}
+function renderPinnedBar(){
+  const bar = $('pinned-bar');
+  if (!bar) return;
+  const msg = pinnedMessageId ? messages.find(m => m.id === pinnedMessageId) : null;
+  if (!msg){
+    bar.classList.add('hidden');
+    return;
+  }
+  const who = msg.from === 'me' ? (myName || 'You') : (peerName || 'Partner');
+  $('pinned-text').innerHTML = `<b>${esc(who)}:</b> ${esc(pinSnippetFor(msg))}`;
+  bar.classList.remove('hidden');
+}
+$('pinned-unpin-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  unpinMessage(true);
+  toast('📌 Unpinned');
+});
+$('pinned-bar').addEventListener('click', () => {
+  if (pinnedMessageId) jumpToMessage(pinnedMessageId, 'pin-jump-highlight');
+});
+
 $('mctx-delete').addEventListener('click', () => {
   deleteMessage(currentCtxMsgId);
   $('msg-ctx-menu').classList.remove('show');
@@ -3532,6 +3734,11 @@ function removeMessageFromDom(msgId, fromPartner){
   const row = document.querySelector(`.msg-row[data-mid="${msgId}"]`);
   if (row) row.remove();
   if (fromPartner) toast('🗑️ A message was deleted');
+  // A pinned message that gets deleted can't stay pinned. Only the side that
+  // actually initiated the deletion (fromPartner === false) broadcasts the
+  // unpin — the receiving side just mirrors the state locally, so we don't
+  // send 'unpin-message' twice for one deletion.
+  if (pinnedMessageId === msgId) unpinMessage(!fromPartner);
 }
 
 // Double-tap quick "heart" reaction + single click on bubble for image viewer / audio play
@@ -3806,9 +4013,70 @@ function clearAllMessages(fromPartner){
   messages = []; reactionState = {};
   try{ localStorage.setItem('duo-reactions', '{}'); }catch(e){}
   idbClearMessages();
+  // No pinned message can survive a full clear — both sides arrive at this
+  // independently (one via the local action, one via the clear-chat broadcast)
+  // so no extra network message is needed to keep them in sync.
+  pinnedMessageId = null;
+  try{ localStorage.removeItem('duo-pinned'); }catch(e){}
   renderAllMessages();
   toast(fromPartner ? '🧹 Your partner cleared the chat' : '🧹 Chat cleared');
 }
+// Plain-text export of the chat — since the room (and everything in it)
+// disappears once both sides leave, this is the one way to keep a copy of
+// a conversation that mattered. Media/voice/files are noted by name/type
+// rather than embedded, since a giant base64 blob in a .txt file isn't
+// something anyone could actually use.
+function absoluteDateLabel(ts){
+  return new Date(ts).toLocaleDateString([], { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+}
+function exportLineFor(m){
+  const who = m.from === 'me' ? (myName || 'You') : (peerName || 'Partner');
+  const time = fmtTime(m.time);
+  const edited = m.edited ? ' (edited)' : '';
+  let body;
+  switch (m.type){
+    case 'text': body = m.text + edited; break;
+    case 'image': body = '[Photo]' + (m.caption ? ' ' + m.caption : ''); break;
+    case 'video': body = '[Video]' + (m.caption ? ' ' + m.caption : ''); break;
+    case 'audio': body = '[Voice message]'; break;
+    case 'file': body = '[File: ' + (m.name || 'attachment') + ']'; break;
+    default: body = '[Message]';
+  }
+  return `[${time}] ${who}: ${body}`;
+}
+function exportChatAsText(){
+  if (!messages.length){ toast('Nothing to export yet'); return; }
+  const lines = [];
+  lines.push(`Chat export — ${myName || 'You'} & ${peerName || 'Partner'}`);
+  lines.push(`Generated ${new Date().toLocaleString()}`);
+  lines.push('─'.repeat(40));
+  let lastDay = null;
+  messages.forEach(m => {
+    const dayLabel = absoluteDateLabel(m.time);
+    if (dayLabel !== lastDay){
+      lines.push('');
+      lines.push(`── ${dayLabel} ──`);
+      lastDay = dayLabel;
+    }
+    lines.push(exportLineFor(m));
+  });
+  lines.push('');
+  lines.push('─'.repeat(40));
+  lines.push('Note: photos, videos, voice notes & files are listed but not included — only the messages themselves were exported.');
+
+  const blob = new Blob([lines.join('\n')], { type:'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `chat-export-${stamp}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast('📄 Chat exported');
+}
+
 function clearMediaOnly(){
   const mediaTypes = ['image','video','audio','file'];
   const removedIds = [];
@@ -3817,7 +4085,7 @@ function clearMediaOnly(){
     return true;
   });
   if (!removedIds.length){ toast('Nothing to clear — no photos, videos or files yet'); return; }
-  removeTrimmedRows(removedIds);
+  removeTrimmedRows(removedIds); // also unpins automatically if the pinned message was among these
   idbDeleteMessages(removedIds);
   try{ localStorage.setItem('duo-reactions', JSON.stringify(reactionState)); }catch(e){}
   renderAllMessages();
@@ -3946,6 +4214,12 @@ function buildSettingsPage(){
         <div class="toggle-info"><div class="toggle-label">Clear photos &amp; videos only</div><div class="toggle-sub">Frees up space, keeps your text history</div></div>
         <button class="btn btn-ghost btn-sm" id="settings-clear-media-btn" style="width:auto;padding:.45rem .9rem">Clear</button>
       </div>
+      <div class="ctx-divider"></div>
+      <div class="toggle-row">
+        <div class="opt-icon" style="background:var(--primary-soft);color:var(--primary)">${svgIc('M12 15V3m0 12l-4-4m4 4l4-4M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2')}</div>
+        <div class="toggle-info"><div class="toggle-label">Export this chat</div><div class="toggle-sub">Save your text messages as a file before they're gone</div></div>
+        <button class="btn btn-ghost btn-sm" id="settings-export-chat-btn" style="width:auto;padding:.45rem .9rem">Export</button>
+      </div>
     </div>
     <div class="set-section-title">Connection</div>
     <div class="card" style="padding:.2rem .6rem">
@@ -4056,6 +4330,10 @@ $('page-body').addEventListener('click', e => {
   if (e.target.closest('#settings-clear-media-btn')){
     if (!confirm('Clear all photos, videos, voice notes & files in this chat? Your text messages stay. This cannot be undone.')) return;
     clearMediaOnly();
+    return;
+  }
+  if (e.target.closest('#settings-export-chat-btn')){
+    exportChatAsText();
     return;
   }
   if (e.target.closest('#settings-leave-btn')){
@@ -4234,8 +4512,9 @@ $('page-body').addEventListener('click', e => {
 
 // Jump from a search result back into the live chat, mounting older
 // history if needed so the target message actually exists in the DOM.
-function jumpToMessage(msgId){
-  closeSettingsPage();
+function jumpToMessage(msgId, highlightClass){
+  highlightClass = highlightClass || 'search-jump-highlight';
+  closeSettingsPage(); // no-op if no page overlay is open (e.g. jumping from the pinned bar)
   const idx = messages.findIndex(m => m.id === msgId);
   if (idx === -1) return;
   let row = document.querySelector(`.msg-row[data-mid="${msgId}"]`);
@@ -4257,8 +4536,8 @@ function jumpToMessage(msgId){
   }
   if (!row) return;
   row.scrollIntoView({ block:'center' });
-  row.classList.add('search-jump-highlight');
-  setTimeout(() => row.classList.remove('search-jump-highlight'), 1700);
+  row.classList.add(highlightClass);
+  setTimeout(() => row.classList.remove(highlightClass), 1700);
 }
 
 // ════════════════════════════════════════════════════════════
