@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss: blob: data:; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Hey</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%235B7FE3'/%3E%3Cstop offset='1' stop-color='%2339E0FF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='url(%23g)'/%3E%3Ccircle cx='24' cy='30' r='11' fill='white' opacity='.95'/%3E%3Ccircle cx='40' cy='30' r='11' fill='white' opacity='.65'/%3E%3C/svg%3E">
@@ -197,11 +199,28 @@ svg{ width:1.15em; height:1.15em; display:inline-block; flex-shrink:0 } /* safet
   align-items:center; justify-content:center;
   padding:1.5rem;
   background: var(--bg-grad);
+  position:relative; overflow:hidden;
 }
 .welcome-card{
   width:100%; max-width:420px;
   display:flex; flex-direction:column; align-items:center;
   gap:1.5rem;
+  position:relative; z-index:1;
+}
+/* ════════════════════════════════════════════════════════════
+   ANIMATED WELCOME-SCREEN PARTICLES (DESIGN)
+   ════════════════════════════════════════════════════════════ */
+.particles{ position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0 }
+.particle{
+  position:absolute; bottom:-40px; border-radius:50%;
+  background: radial-gradient(circle at 35% 35%, var(--primary), var(--primary-2));
+  opacity:.35; animation-name: particleFloat; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes particleFloat{
+  0%{ transform:translateY(0) translateX(0); opacity:0 }
+  10%{ opacity:.4 }
+  90%{ opacity:.3 }
+  100%{ transform:translateY(-115vh) translateX(var(--drift,24px)); opacity:0 }
 }
 @keyframes floatUp{ from{opacity:0; transform:translateY(26px)} to{opacity:1; transform:none} }
 @keyframes badgeBob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
@@ -530,7 +549,25 @@ body.dark .db-icon{ filter:drop-shadow(0 10px 22px rgba(57,224,255,.25)) }
   padding:1rem .9rem 1.2rem;
   display:flex; flex-direction:column; gap:.15rem;
   scroll-behavior:smooth;
+  background-size:cover; background-position:center; background-repeat:no-repeat; transition:background-color .25s;
 }
+/* ════════════════════════════════════════════════════════════
+   CUSTOM CHAT WALLPAPER
+   ════════════════════════════════════════════════════════════ */
+.wallpaper-swatch{
+  width:2.6rem; height:2.6rem; border-radius:12px; cursor:pointer; flex-shrink:0;
+  border:2.5px solid transparent; transition: transform .15s, border-color .15s;
+}
+.wallpaper-swatch:active{ transform:scale(.92) }
+.wallpaper-swatch.selected{ border-color:var(--primary) }
+.wallpaper-row{ display:flex; gap:.6rem; padding:.9rem .6rem; flex-wrap:wrap; align-items:center }
+.wallpaper-upload-btn{
+  width:2.6rem; height:2.6rem; border-radius:12px; flex-shrink:0; cursor:pointer;
+  background:var(--surface-3); border:1.5px dashed var(--border-2); color:var(--text-2);
+  display:flex; align-items:center; justify-content:center;
+}
+.wallpaper-upload-btn svg{ width:15px; height:15px }
+
 .day-divider{
   align-self:center; font-size:.68rem; font-weight:700; color:var(--text-2);
   background: var(--surface-2); padding:.3rem .8rem; border-radius:999px;
@@ -703,6 +740,40 @@ body.dark .db-icon{ filter:drop-shadow(0 10px 22px rgba(57,224,255,.25)) }
 .reply-bar-close{ width:1.7rem; height:1.7rem; border-radius:50%; border:none; background:var(--surface-3); color:var(--text-2); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0 }
 .reply-bar-close svg{ width:12px; height:12px }
 
+/* ════════════════════════════════════════════════════════════
+   SCREEN SHARE — ACTIVE WARNING BANNER (shown during video calls)
+   ════════════════════════════════════════════════════════════ */
+.screenshare-warning{
+  position:absolute; top:max(.8rem, env(safe-area-inset-top)); left:.8rem; right:.8rem; z-index:5;
+  display:flex; align-items:center; gap:.5rem; justify-content:center;
+  background:rgba(239,69,101,.92); color:#fff; font-size:.78rem; font-weight:700;
+  padding:.55rem .8rem; border-radius:999px; box-shadow:var(--shadow-md);
+}
+.screenshare-warning.hidden{ display:none }
+.ssw-dot{ width:7px; height:7px; border-radius:50%; background:#fff; flex-shrink:0; animation: sswPulse 1.4s ease-in-out infinite }
+@keyframes sswPulse{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+.screenshare-warning #ssw-stop-btn{
+  border:none; background:rgba(255,255,255,.25); color:#fff; font-weight:800; font-size:.72rem;
+  padding:.3rem .65rem; border-radius:999px; cursor:pointer; flex-shrink:0;
+}
+.screenshare-warning #ssw-stop-btn:hover{ background:rgba(255,255,255,.38) }
+
+/* ════════════════════════════════════════════════════════════
+   FILE DRAG & DROP OVERLAY
+   ════════════════════════════════════════════════════════════ */
+#dropzone-overlay{
+  position:absolute; inset:0; z-index:50; background:rgba(91,127,227,.14);
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; pointer-events:none;
+}
+#dropzone-overlay.show{ display:flex }
+.dropzone-card{
+  background:var(--surface); border:2.5px dashed var(--primary); border-radius:22px;
+  padding:1.8rem 1.6rem; display:flex; flex-direction:column; align-items:center; gap:.6rem; box-shadow:var(--shadow-lg);
+}
+.dropzone-card svg{ width:32px; height:32px; color:var(--primary) }
+.dropzone-card span{ font-weight:800; color:var(--text); font-size:.88rem }
+
 #composer{
   flex-shrink:0; position:relative;
   padding:.6rem .7rem;
@@ -788,6 +859,67 @@ body.dark .db-icon{ filter:drop-shadow(0 10px 22px rgba(57,224,255,.25)) }
 .ep-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:.1rem; padding:.5rem; max-height:200px; overflow-y:auto }
 .ep-emoji{ border:none; background:none; font-size:1.25rem; padding:.35rem; border-radius:8px; cursor:pointer; transition: background .1s }
 .ep-emoji:hover{ background:var(--surface-2) }
+
+/* GIF picker (GIPHY search) */
+#gif-picker{
+  position:absolute; bottom:calc(100% + 8px); left:.7rem; right:.7rem;
+  max-width:340px; height:380px;
+  background: var(--surface); border:1px solid var(--border-2); border-radius: var(--radius-lg);
+  display:none; flex-direction:column; box-shadow: var(--shadow-lg); z-index:40;
+  animation: popIn .18s ease-out; overflow:hidden;
+}
+#gif-picker.show{ display:flex }
+.gif-picker-head{ display:flex; gap:.5rem; padding:.6rem; border-bottom:1px solid var(--border); flex-shrink:0 }
+.gif-picker-head input{
+  flex:1; min-width:0; border:1px solid var(--border-2); border-radius:999px; padding:.45rem .9rem; font-size:.82rem;
+  background:var(--surface-2); color:var(--text); font-family:inherit;
+}
+.gif-picker-head input:focus{ border-color:var(--primary) }
+.gif-picker-head button{
+  border:none; background:var(--surface-2); width:2rem; height:2rem; border-radius:50%; cursor:pointer;
+  color:var(--text-2); flex-shrink:0; display:flex; align-items:center; justify-content:center;
+}
+.gif-picker-head button svg{ width:14px; height:14px }
+.gif-grid{ flex:1; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:.4rem; padding:.5rem; align-content:start }
+.gif-grid img{ width:100%; height:9rem; border-radius:10px; cursor:pointer; display:block; background:var(--surface-2); object-fit:cover }
+.gif-grid img:active{ transform:scale(.96) }
+.gif-grid-msg{ grid-column:1/-1; text-align:center; font-size:.8rem; color:var(--text-3); font-weight:600; padding:2rem 1rem }
+.gif-attribution{ text-align:center; font-size:.62rem; color:var(--text-3); font-weight:700; padding:.4rem; border-top:1px solid var(--border); flex-shrink:0; letter-spacing:.03em }
+
+.ep-mode-tabs{ display:flex; gap:.4rem; padding:.55rem .6rem .3rem; border-bottom:1px solid var(--border) }
+.ep-mode-btn{ flex:1; border:none; background:var(--surface-2); color:var(--text-2); font-weight:700; font-size:.76rem; padding:.4rem; border-radius:10px; cursor:pointer }
+.ep-mode-btn.active{ background:var(--primary); color:#fff }
+#sticker-grid{ grid-template-columns:repeat(4,1fr) }
+.ep-sticker{ border:none; background:none; font-size:2.1rem; padding:.4rem; border-radius:12px; cursor:pointer; transition: background .1s, transform .1s; line-height:1 }
+.ep-sticker:hover{ background:var(--surface-2); transform:scale(1.08) }
+.sticker-bubble{ font-size:3.4rem; line-height:1; padding:.2rem !important; background:transparent !important; box-shadow:none !important; }
+
+/* Self-destruct timer indicator */
+#composer.sd-active{ box-shadow: inset 0 2px 0 var(--danger) }
+.sd-badge{
+  display:inline-flex; align-items:center; gap:.25rem; font-size:.64rem; font-weight:800; color:var(--danger);
+  background:var(--danger-soft); padding:.15rem .4rem; border-radius:999px; margin-left:.35rem; vertical-align:middle;
+}
+.sd-badge svg{ width:9px; height:9px }
+
+/* PWA install banner */
+#install-banner{
+  position:fixed; left:50%; bottom:1rem; transform:translateX(-50%) translateY(120%);
+  width:min(360px, calc(100% - 1.6rem)); display:flex; align-items:center; gap:.7rem;
+  background:var(--surface); border:1px solid var(--border-2); border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg); padding:.8rem .9rem; z-index:200; transition:transform .3s cubic-bezier(.22,1,.36,1);
+}
+#install-banner.show{ transform:translateX(-50%) translateY(0); }
+.ib-icon{ width:2.3rem; height:2.3rem; border-radius:50%; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0 }
+.ib-icon svg{ width:18px; height:18px }
+.ib-text{ flex:1; min-width:0 }
+.ib-title{ font-size:.82rem; font-weight:700; color:var(--text) }
+.ib-sub{ font-size:.7rem; color:var(--text-3); font-weight:600 }
+.ib-dismiss{ border:none; background:none; color:var(--text-3); width:1.6rem; height:1.6rem; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0 }
+.ib-dismiss svg{ width:13px; height:13px }
+
+
+
 
 /* Media preview bar (image/video before send) */
 #preview-bar{
@@ -1315,7 +1447,105 @@ body.dark #conn-status-bar{ color:#ffcf80 }
 }
 @media(max-width:340px){
   #ch-notif-btn{ display:none } /* fold into Settings on very narrow screens to avoid crowding */
+  #ch-search-btn{ display:none } /* still reachable via the chat options menu (⋮) on tiny screens */
 }
+
+/* ============================================================
+   ACCESSIBILITY & NEW SETTINGS — font scale, high contrast,
+   reduced motion, profile photo upload, header unread badge,
+   encrypted/no-logging notices
+   ============================================================ */
+
+/* Visually hidden but still announced by screen readers — used for
+   the live-region announcer and other SR-only helper text. */
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+/* Font scale: applied as a multiplier on the root, all rem-based
+   sizing throughout the app scales automatically */
+html{ font-size: calc(16px * var(--font-scale, 1)); }
+
+/* High contrast theme — boosts borders/text contrast over both
+   light and dark modes without needing a 3rd color system */
+body.high-contrast{
+  --text:#000000; --text-2:#1a1a1a; --text-3:#333333;
+  --border: rgba(0,0,0,.55); --border-2: rgba(0,0,0,.75);
+  --surface:#ffffff; --surface-2:#ffffff; --surface-3:#f0f0f0;
+  --them-bubble:#ffffff; --them-text:#000000;
+  --me-bubble:#0030a8; --me-text:#ffffff;
+  --primary:#0030a8; --primary-2:#001f70;
+}
+body.high-contrast.dark{
+  --text:#ffffff; --text-2:#f0f0f0; --text-3:#dddddd;
+  --border: rgba(255,255,255,.55); --border-2: rgba(255,255,255,.75);
+  --surface:#000000; --surface-2:#000000; --surface-3:#141414;
+  --them-bubble:#141414; --them-text:#ffffff;
+  --me-bubble:#5b9dff; --me-text:#000000;
+  --primary:#5b9dff; --primary-2:#8fc1ff;
+}
+body.high-contrast .bubble{ border-width:1.5px }
+body.high-contrast .btn-primary, body.high-contrast .switch.on{ outline:2px solid currentColor; outline-offset:-2px }
+
+/* Respect OS-level reduced motion automatically */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+}
+/* Manual override toggle (Settings -> Reduce motion), independent of OS pref */
+body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after{
+  animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;
+}
+
+/* Keyboard-focus visibility — only show rings for keyboard users (not mouse taps) */
+body:not(.using-mouse) button:focus-visible,
+body:not(.using-mouse) input:focus-visible,
+body:not(.using-mouse) select:focus-visible,
+body:not(.using-mouse) [tabindex]:focus-visible{
+  outline:2.5px solid var(--primary); outline-offset:2px; border-radius:8px;
+}
+.using-mouse *:focus{ outline:none }
+
+/* Profile photo (avatar upload) — when a photo exists we swap the
+   letter avatar for a real <img>, sized identically everywhere */
+.ch-avatar img, .profile-av img, .avatar-preview img, .cb-av img, .typing-av img{
+  width:100%; height:100%; object-fit:cover; border-radius:50%;
+}
+.av-upload-row{ display:flex; align-items:center; gap:.9rem; }
+.av-upload-actions{ display:flex; gap:.5rem; }
+.av-edit-fab{
+  position:absolute; bottom:-2px; right:-2px; width:1.5rem; height:1.5rem; border-radius:50%;
+  background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center;
+  border:2px solid var(--surface); cursor:pointer;
+}
+.av-edit-fab svg{ width:11px; height:11px }
+#settings-av-wrap, #setup-av-wrap{ position:relative; display:inline-block }
+
+/* Header unread badge */
+.ch-unread-badge{
+  position:absolute; top:-4px; right:-4px; min-width:1.1rem; height:1.1rem; padding:0 .3rem;
+  border-radius:999px; background:var(--danger); color:#fff; font-size:.62rem; font-weight:800;
+  display:flex; align-items:center; justify-content:center; line-height:1; box-shadow:0 0 0 2px var(--surface);
+}
+
+/* Encrypted / privacy badges shown in chat header + settings */
+.privacy-badge{
+  display:inline-flex; align-items:center; gap:.3rem; font-size:.66rem; font-weight:700;
+  color:var(--online); background:rgba(51,201,122,.12); padding:.25rem .55rem; border-radius:999px;
+}
+.privacy-badge svg{ width:11px; height:11px }
+.privacy-note{
+  display:flex; gap:.6rem; align-items:flex-start; padding:.8rem .9rem; border-radius:var(--radius-md);
+  background:var(--surface-2); border:1px solid var(--border); font-size:.74rem; color:var(--text-2); line-height:1.5;
+}
+.privacy-note svg{ width:16px; height:16px; flex-shrink:0; color:var(--online); margin-top:.1rem }
+
+/* Connection quality indicator dot, shown next to "Connected" in chat header */
+.conn-quality{ display:inline-flex; align-items:center; gap:.3rem; font-size:.66rem; font-weight:700 }
+.cq-dot{ width:7px; height:7px; border-radius:50% }
+.cq-dot.excellent{ background:var(--online) }
+.cq-dot.good{ background:var(--accent) }
+.cq-dot.poor{ background:var(--danger) }
 </style>
 </head>
 <body>
@@ -1332,6 +1562,7 @@ body.dark #conn-status-bar{ color:#ffcf80 }
 
   <!-- ============ SCREEN: WELCOME ============ -->
   <div class="screen" id="screen-welcome">
+    <div class="particles" id="welcome-particles" aria-hidden="true"></div>
     <div class="welcome-card">
       <div class="duo-badge" aria-hidden="true">
         <svg viewBox="0 0 64 64" class="db-icon">
@@ -1371,7 +1602,12 @@ body.dark #conn-status-bar{ color:#ffcf80 }
     </button>
     <div class="setup-card">
       <div class="setup-head">
-        <div class="avatar-preview" id="setup-avatar-preview">?</div>
+        <div id="setup-av-wrap">
+          <div class="avatar-preview" id="setup-avatar-preview">?</div>
+          <div class="av-edit-fab" id="setup-av-edit-btn" role="button" tabindex="0" aria-label="Add profile photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          </div>
+        </div>
         <h1>What's your name?</h1>
         <p>This is how your partner will see you in the chat.</p>
       </div>
@@ -1466,13 +1702,14 @@ body.dark #conn-status-bar{ color:#ffcf80 }
   <!-- ============ SCREEN: CHAT ============ -->
   <div class="screen" id="screen-chat">
     <div class="chat-header">
-      <button class="ch-icobtn" id="chat-back-btn">
+      <button class="ch-icobtn" id="chat-back-btn" aria-label="Back">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></svg>
       </button>
-      <div class="ch-peer" id="chat-peer-info">
+      <div class="ch-peer" id="chat-peer-info" role="button" tabindex="0" aria-label="Open settings">
         <div class="ch-avatar-wrap">
           <div class="ch-avatar" id="ch-avatar">?</div>
           <div class="ch-dot" id="ch-dot"></div>
+          <span class="ch-unread-badge hidden" id="ch-unread-badge">0</span>
         </div>
         <div class="ch-info">
           <div class="ch-name" id="ch-name">Connecting…</div>
@@ -1481,16 +1718,25 @@ body.dark #conn-status-bar{ color:#ffcf80 }
       </div>
       <div class="ch-actions">
         <button class="ch-icobtn" id="ch-notif-btn" title="Notifications"></button>
-        <button class="ch-icobtn" id="ch-voice-btn" title="Voice call">
+        <button class="ch-icobtn" id="ch-search-btn" title="Search messages" aria-label="Search messages">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+        </button>
+        <button class="ch-icobtn" id="ch-voice-btn" title="Voice call" aria-label="Voice call">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h2.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-1.273.636a11.05 11.05 0 005.516 5.516l.636-1.273a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
         </button>
-        <button class="ch-icobtn" id="ch-video-btn" title="Video call">
+        <button class="ch-icobtn" id="ch-video-btn" title="Video call" aria-label="Video call">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
         </button>
-        <button class="ch-icobtn" id="ch-menu-btn" title="Options">
+        <button class="ch-icobtn" id="ch-menu-btn" title="Options" aria-label="Chat options" aria-haspopup="true">
           <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
         </button>
       </div>
+    </div>
+
+    <div class="screenshare-warning hidden" id="screenshare-warning" role="status">
+      <span class="ssw-dot" aria-hidden="true"></span>
+      <span>You're sharing your screen</span>
+      <button type="button" id="ssw-stop-btn">Stop sharing</button>
     </div>
 
     <div id="pinned-bar" class="hidden">
@@ -1539,10 +1785,25 @@ body.dark #conn-status-bar{ color:#ffcf80 }
         <button class="am-item" id="am-image"><div class="am-ic" style="background:rgba(91,127,227,.14);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.7"/><path d="M21 15l-5-5L5 21"/></svg></div>Photo</button>
         <button class="am-item" id="am-video"><div class="am-ic" style="background:rgba(255,178,56,.16);color:#d98300"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.55-2.28A1 1 0 0121 8.6v6.76a1 1 0 01-1.45.9L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg></div>Video</button>
         <button class="am-item" id="am-doc"><div class="am-ic" style="background:rgba(51,201,122,.14);color:var(--online)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 001 1h4M7 3h6l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg></div>Document</button>
+        <button class="am-item" id="am-gif"><div class="am-ic" style="background:rgba(255,86,164,.14);color:#e0379a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 9.5v5M11 9.5v5M11 12h1.5M17 9.5h-2.5v5M14.5 12H16"/></svg></div>GIF</button>
+        <button class="am-item" id="am-selfdestruct"><div class="am-ic" style="background:var(--danger-soft);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"/></svg></div><span id="am-selfdestruct-label">Self-destruct: Off</span></button>
       </div>
       <div id="emoji-picker">
+        <div class="ep-mode-tabs" id="ep-mode-tabs">
+          <button class="ep-mode-btn active" data-mode="emoji">Emoji</button>
+          <button class="ep-mode-btn" data-mode="sticker">Stickers</button>
+        </div>
         <div class="ep-cats" id="ep-cats"></div>
         <div class="ep-grid" id="ep-grid"></div>
+        <div class="ep-grid hidden" id="sticker-grid"></div>
+      </div>
+      <div id="gif-picker">
+        <div class="gif-picker-head">
+          <input type="text" id="gif-search-inp" placeholder="Search GIFs…" autocomplete="off" aria-label="Search GIFs">
+          <button type="button" id="gif-picker-close" aria-label="Close GIF picker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div class="gif-grid" id="gif-grid"></div>
+        <div class="gif-attribution">Powered by GIPHY</div>
       </div>
       <div class="composer-row">
         <button class="comp-icobtn" id="attach-btn">
@@ -1562,6 +1823,14 @@ body.dark #conn-status-bar{ color:#ffcf80 }
       <input type="file" id="file-image" accept="image/*" style="display:none">
       <input type="file" id="file-video" accept="video/*" style="display:none">
       <input type="file" id="file-doc" style="display:none">
+      <input type="file" id="file-avatar" accept="image/*" style="display:none">
+    </div>
+
+    <div id="dropzone-overlay" aria-hidden="true">
+      <div class="dropzone-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5l5 5M5 16v2a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>
+        <span>Drop to send</span>
+      </div>
     </div>
   </div>
 
@@ -1610,6 +1879,10 @@ body.dark #conn-status-bar{ color:#ffcf80 }
       <button class="opt-item" id="opt-settings">
         <div class="opt-icon" style="background:var(--primary-soft);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 005 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 008.51 4.6 1.65 1.65 0 0010 4h.09A2 2 0 0114 3.91V4a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
         <span class="opt-label">App settings</span>
+      </button>
+      <button class="opt-item" id="opt-help">
+        <div class="opt-icon" style="background:var(--surface-3);color:var(--text-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/></svg></div>
+        <span class="opt-label">Help &amp; support</span>
       </button>
       <button class="opt-item danger" id="opt-leave">
         <div class="opt-icon" style="background:var(--danger-soft);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 5v1a3 3 0 01-3 3H6a3 3 0 01-3-3V6a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></div>
@@ -1685,6 +1958,18 @@ body.dark #conn-status-bar{ color:#ffcf80 }
   </div>
 </div>
 
+<!-- ============ IDLE / AUTO-DISCONNECT WARNING ============ -->
+<div class="modal-overlay" id="modal-idle-warning">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-handle"></div>
+    <h3 style="text-align:center">Still there?</h3>
+    <p style="text-align:center;color:var(--text-2);font-size:.86rem;line-height:1.6;margin-top:.4rem">
+      No activity for a while — to protect your privacy, this room will disconnect automatically in <b id="idle-countdown">60</b>s if you don't respond.
+    </p>
+    <button class="btn btn-primary" id="idle-stay-btn" style="margin-top:1rem">I'm still here</button>
+  </div>
+</div>
+
 <!-- ============ QR CODE SCANNER (camera) ============ -->
 <div class="qr-scan-overlay" id="qr-scan-overlay">
   <div class="qrs-top">
@@ -1736,6 +2021,7 @@ body.dark #conn-status-bar{ color:#ffcf80 }
     <div class="call-name" id="vc-name">–</div>
     <div class="call-status" id="vc-status">Calling…</div>
     <div class="call-timer" id="vc-timer"></div>
+    <div class="call-status" id="vc-verify-code" style="font-family:'Manrope';font-weight:800;letter-spacing:.1em;opacity:.75"></div>
   </div>
   <div class="call-controls">
     <button class="call-ctrl" id="vc-mute-btn" title="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"/></svg></button>
@@ -1754,12 +2040,14 @@ body.dark #conn-status-bar{ color:#ffcf80 }
       <div class="call-name" id="vc-video-name">–</div>
       <div class="call-status" id="vc-video-status">Calling…</div>
       <div class="call-timer" id="vc-video-timer"></div>
+      <div class="call-status" id="vc-video-verify-code" style="font-family:'Manrope';font-weight:800;letter-spacing:.1em;opacity:.75"></div>
     </div>
     <div class="call-controls">
       <button class="call-ctrl" id="vcv-mute-btn" title="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"/></svg></button>
       <button class="call-ctrl" id="vcv-cam-btn" title="Toggle camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.55-2.28A1 1 0 0121 8.6v6.76a1 1 0 01-1.45.9L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg></button>
       <button class="call-ctrl end" id="vcv-end-btn" title="End call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5c0-3.866-2-7-4.5-7s-4.5 3.134-4.5 7m9 0a9 9 0 00-9 0m9 0c0 1.378-.21 2.698-.6 3.9M7.5 10.5c0 1.378.21 2.698.6 3.9m0 0L3 21l4-2m1.1-4.6c.48.987 1.13 1.875 1.9 2.6m0 0L12 21l2-4m-2 4c.77-.725 1.42-1.613 1.9-2.6"/></svg></button>
       <button class="call-ctrl" id="vcv-flip-btn" title="Flip camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+      <button class="call-ctrl" id="vcv-screenshare-btn" title="Share screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="2" y="3" width="20" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 21h8M12 17v4"/></svg></button>
     </div>
   </div>
 </div>
@@ -1807,7 +2095,21 @@ body.dark #conn-status-bar{ color:#ffcf80 }
   </div>
 </div>
 
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="aria-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+<div id="install-banner">
+  <div class="ib-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>
+  </div>
+  <div class="ib-text">
+    <div class="ib-title">Install Hey Chat</div>
+    <div class="ib-sub">Faster opening, works offline</div>
+  </div>
+  <button class="btn btn-primary btn-sm" id="install-accept-btn" style="width:auto">Install</button>
+  <button class="ib-dismiss" id="install-dismiss-btn" aria-label="Dismiss">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+</div>
 <audio id="snd-msg" preload="auto"></audio>
 <audio id="snd-notif" preload="auto"></audio>
 <audio id="snd-call" preload="auto" loop></audio>
@@ -1837,6 +2139,27 @@ let soundEnabled  = localStorage.getItem('duo-sound') !== '0';
 let autoClear     = localStorage.getItem('duo-autoclear') === '1';
 let autoClearMins = parseInt(localStorage.getItem('duo-autoclear-mins') || '1440', 10); // default 24h
 let isMuted       = localStorage.getItem('duo-muted') === '1';
+let myAvatar      = localStorage.getItem('duo-avatar') || ''; // data URL, downscaled+compressed client-side
+let fontScaleIdx  = parseInt(localStorage.getItem('duo-fontscale') ?? '1', 10); // 0..4 -> 0.875/1/1.125/1.25/1.4
+const FONT_SCALES = [0.875, 1, 1.125, 1.25, 1.4];
+const FONT_SCALE_LABELS = ['Small','Default','Large','Extra large','Huge'];
+let highContrast  = localStorage.getItem('duo-contrast') === '1';
+let reduceMotion  = localStorage.getItem('duo-motion') === '1';
+let bubbleTheme   = localStorage.getItem('duo-bubbletheme') || 'default';
+let idleDisconnectEnabled = localStorage.getItem('duo-idledisconnect') !== '0'; // on by default
+let selfDestructSecs = 0; // 0 = off, otherwise 5 / 30 / 60
+const IDLE_WARNING_AFTER_MS = 10 * 60 * 1000; // warn at 10 min of no activity
+const IDLE_GRACE_MS = 60 * 1000;              // then 60s to respond before disconnecting
+let lastActivityAt = Date.now();
+let idleWarnTimer = null, idleGraceTimer = null, idleCountdownInterval = null;
+const BUBBLE_THEMES = {
+  default: { label:'Blue',   me:'linear-gradient(135deg,#5b7fe3,#3f63d6)', meD:'linear-gradient(135deg,#5b7fe3,#3f63d6)' },
+  pink:    { label:'Pink',   me:'linear-gradient(135deg,#f06ba8,#e0488f)', meD:'linear-gradient(135deg,#f06ba8,#e0488f)' },
+  green:   { label:'Green',  me:'linear-gradient(135deg,#34c98a,#1fa86e)', meD:'linear-gradient(135deg,#34c98a,#1fa86e)' },
+  purple:  { label:'Purple', me:'linear-gradient(135deg,#9b6bf0,#7c45db)', meD:'linear-gradient(135deg,#9b6bf0,#7c45db)' },
+  sunset:  { label:'Sunset', me:'linear-gradient(135deg,#ff9d5c,#ef5b5b)', meD:'linear-gradient(135deg,#ff9d5c,#ef5b5b)' },
+  mono:    { label:'Mono',   me:'#2b2f3a', meD:'#3a3f4d' }
+};
 
 // Lightweight cooldown on generating brand-new rooms — prevents accidental
 // rapid-fire taps (or anything automated) from hammering the signaling
@@ -1848,6 +2171,7 @@ let peer = null;
 let conn = null;            // the single active data connection (peer-to-peer)
 let roomLocked = false;     // true once 2 participants are joined
 let peerName = localStorage.getItem('duo-peername') || '';          // partner's display name (learned via handshake, cached for instant reconnect UI)
+let peerAvatar = localStorage.getItem('duo-peeravatar') || '';      // partner's profile photo (data URL), learned via avatar-update message
 let peerOnline = false;
 let isConnecting = false;   // true while attempting initial/auto reconnect to the partner
 let reconnectTimeout = null;
@@ -1898,6 +2222,29 @@ const PEER_ICE_CONFIG = {
 // ---------- HELPERS ----------
 function $(id){ return document.getElementById(id) }
 function esc(s){ const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML }
+
+// ---------- CONNECTION FINGERPRINT (MITM-resistant verification) ----------
+// Derives a short 4-digit code from both peers' IDs, sorted so each side
+// computes the SAME number independently — no value is sent over the wire.
+// If a man-in-the-middle were relaying as a fake "partner", the peer ID
+// it presents wouldn't match what the real partner sees on their own
+// screen, so the codes would visibly differ when compared out loud/in person.
+async function computeConnectionFingerprint(myId, theirId){
+  if (!myId || !theirId) return '----';
+  const combined = [myId, theirId].sort().join('|');
+  try{
+    const enc = new TextEncoder().encode(combined);
+    const hashBuf = await crypto.subtle.digest('SHA-256', enc);
+    const bytes = new Uint8Array(hashBuf);
+    let num = 0;
+    for (let i=0;i<4;i++) num = (num*256 + bytes[i]) % 1000000;
+    return String(num).padStart(6,'0').match(/.{1,2}/g).join(' ');
+  }catch(e){
+    // Fallback if Web Crypto is unavailable for some reason
+    let h = 0; for (let i=0;i<combined.length;i++){ h = (h*31 + combined.charCodeAt(i)) >>> 0; }
+    return String(h % 1000000).padStart(6,'0').match(/.{1,2}/g).join(' ');
+  }
+}
 // Turns bare URLs inside a message into tappable links, without ever trusting
 // raw HTML — escaping always happens on the pieces, never the whole string.
 function linkifyText(text){
@@ -2116,11 +2463,58 @@ function toast(msg){
   const e = $('toast'); e.textContent = msg; e.classList.add('show');
   clearTimeout(toastT); toastT = setTimeout(()=>e.classList.remove('show'), 2600);
 }
+// ════════════════════════════════════════════════════════════
+//  ACCESSIBILITY — screen reader live-region announcer. Pushes a
+//  short status update into a visually-hidden aria-live region so
+//  screen reader users hear connection/call/message events that are
+//  otherwise communicated only through visual UI changes (dots,
+//  badges, icon swaps). Re-stamping with a trailing space forces a
+//  re-announcement even if the same message fires twice in a row.
+// ════════════════════════════════════════════════════════════
+let announceT = null;
+function announce(msg){
+  const el = $('aria-announcer');
+  if (!el) return;
+  el.textContent = '';
+  clearTimeout(announceT);
+  announceT = setTimeout(() => { el.textContent = msg; }, 50);
+}
 function openModal(id){ $(id).classList.add('show') }
 function closeModal(id){ $(id).classList.remove('show') }
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $(id).classList.add('active');
+  if (id === 'screen-welcome') spawnWelcomeParticles();
+}
+// ════════════════════════════════════════════════════════════
+//  ANIMATED WELCOME-SCREEN PARTICLES — soft floating dots behind
+//  the welcome card. Built once, lazily, the first time the
+//  welcome screen is actually shown. Skipped entirely when
+//  Reduced Motion is on (respects the existing setting/variable).
+// ════════════════════════════════════════════════════════════
+let particlesSpawned = false;
+function spawnWelcomeParticles(){
+  if (particlesSpawned) return;
+  particlesSpawned = true;
+  if (reduceMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const host = $('welcome-particles');
+  if (!host) return;
+  const COUNT = 16;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < COUNT; i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 4 + Math.random() * 9;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.setProperty('--drift', (Math.random() * 70 - 35) + 'px');
+    const duration = 9 + Math.random() * 11;
+    p.style.animationDuration = duration + 's';
+    p.style.animationDelay = (-Math.random() * duration) + 's';
+    frag.appendChild(p);
+  }
+  host.appendChild(frag);
 }
 function playSound(type){
   if (!soundEnabled) return;
@@ -2168,6 +2562,82 @@ function applyTheme(){
 applyTheme();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ if(themeMode==='system') applyTheme() });
 
+// ---------- ACCESSIBILITY & PERSONALIZATION ----------
+function applyAccessibilityPrefs(){
+  document.documentElement.style.setProperty('--font-scale', String(FONT_SCALES[fontScaleIdx] ?? 1));
+  document.body.classList.toggle('high-contrast', highContrast);
+  document.body.classList.toggle('reduce-motion', reduceMotion);
+}
+applyAccessibilityPrefs();
+
+function applyBubbleTheme(){
+  const t = BUBBLE_THEMES[bubbleTheme] || BUBBLE_THEMES.default;
+  document.documentElement.style.setProperty('--me-bubble', t.me);
+}
+applyBubbleTheme();
+
+// Only show focus rings for keyboard users, not mouse clicks (still fully
+// accessible via Tab — this just avoids a ring flashing on every tap)
+document.addEventListener('mousedown', () => document.body.classList.add('using-mouse'));
+document.addEventListener('keydown', (e) => { if (e.key === 'Tab') document.body.classList.remove('using-mouse'); });
+
+// ---------- IDLE / AUTO-DISCONNECT ----------
+// Privacy feature: if you walk away from an open chat (shared computer,
+// public space, etc.) with nobody touching the page, we warn you, then
+// disconnect automatically so the conversation doesn't sit open forever.
+function noteActivity(){
+  lastActivityAt = Date.now();
+  if ($('modal-idle-warning')?.classList.contains('show')){
+    closeModal('modal-idle-warning');
+    clearInterval(idleCountdownInterval);
+    clearTimeout(idleGraceTimer);
+  }
+}
+['mousedown','keydown','touchstart','scroll'].forEach(evt =>
+  document.addEventListener(evt, noteActivity, { passive:true })
+);
+
+function scheduleIdleCheck(){
+  clearTimeout(idleWarnTimer);
+  if (!idleDisconnectEnabled) return;
+  idleWarnTimer = setTimeout(() => {
+    // Only warn if we're actually in an active chat session
+    if (!$('screen-chat').classList.contains('active') || !conn?.open){
+      scheduleIdleCheck(); return; // not in a live chat — nothing to protect, recheck later
+    }
+    showIdleWarning();
+  }, IDLE_WARNING_AFTER_MS);
+}
+function showIdleWarning(){
+  let secsLeft = Math.round(IDLE_GRACE_MS / 1000);
+  $('idle-countdown').textContent = String(secsLeft);
+  openModal('modal-idle-warning');
+  announce('No activity detected. This chat will disconnect in ' + secsLeft + ' seconds unless you respond.');
+  clearInterval(idleCountdownInterval);
+  idleCountdownInterval = setInterval(() => {
+    secsLeft--;
+    const el = $('idle-countdown'); if (el) el.textContent = String(Math.max(secsLeft,0));
+    if (secsLeft <= 0) clearInterval(idleCountdownInterval);
+  }, 1000);
+  clearTimeout(idleGraceTimer);
+  idleGraceTimer = setTimeout(() => {
+    closeModal('modal-idle-warning');
+    if (conn?.open) try{ conn.send({ type:'leave-room' }) }catch(e){}
+    toast('🔒 Disconnected after inactivity, to protect your privacy');
+    resetToWelcome();
+  }, IDLE_GRACE_MS);
+}
+$('idle-stay-btn').addEventListener('click', () => {
+  closeModal('modal-idle-warning');
+  clearInterval(idleCountdownInterval);
+  clearTimeout(idleGraceTimer);
+  noteActivity();
+  scheduleIdleCheck();
+});
+// Re-arm the idle timer continuously while the app is open
+setInterval(() => { if (Date.now() - lastActivityAt < IDLE_WARNING_AFTER_MS) scheduleIdleCheck(); }, 30000);
+scheduleIdleCheck();
+
 // ---------- BOOT ----------
 window.addEventListener('load', () => {
   setTimeout(()=> $('boot-splash').classList.add('hidden'), 450);
@@ -2187,6 +2657,35 @@ if ('serviceWorker' in navigator){
     });
   });
 }
+
+// ════════════════════════════════════════════════════════════
+//  PWA — "Add to Home Screen" install banner. Browsers that
+//  support installable PWAs (most Chromium-based browsers) fire
+//  beforeinstallprompt instead of showing their own UI automatically,
+//  so we capture that event and show our own banner. Safe no-op
+//  everywhere else (Safari, browsers where it's already installed, etc).
+// ════════════════════════════════════════════════════════════
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  if (localStorage.getItem('duo-install-dismissed') === '1') return;
+  deferredInstallPrompt = e;
+  setTimeout(() => $('install-banner').classList.add('show'), 1200);
+});
+$('install-accept-btn').addEventListener('click', async () => {
+  $('install-banner').classList.remove('show');
+  if (!deferredInstallPrompt) return;
+  try{ await deferredInstallPrompt.prompt(); }catch(e){}
+  deferredInstallPrompt = null;
+});
+$('install-dismiss-btn').addEventListener('click', () => {
+  $('install-banner').classList.remove('show');
+  localStorage.setItem('duo-install-dismissed', '1');
+});
+window.addEventListener('appinstalled', () => {
+  $('install-banner').classList.remove('show');
+  deferredInstallPrompt = null;
+});
 
 function boot(){
   if (!myName){ showScreen('screen-welcome'); return }
@@ -2251,7 +2750,8 @@ const setupContinueBtn = $('setup-continue-btn');
 const setupAvatarPreview = $('setup-avatar-preview');
 
 setupNameInp.value = myName;
-if (myName) setupAvatarPreview.textContent = aLetter(myName);
+if (myAvatar) setupAvatarPreview.innerHTML = `<img src="${myAvatar}" alt="">`;
+else if (myName) setupAvatarPreview.textContent = aLetter(myName);
 
 setupNameInp.addEventListener('input', () => {
   // strip disallowed characters live
@@ -2741,6 +3241,7 @@ function finalizeConnection(){
   toast('🎉 Connected with ' + peerName);
   playSound('join');
   conn.send({ type:'request-history-check' });
+  if (myAvatar) try{ conn.send({ type:'avatar-update', avatar: myAvatar }) }catch(e){}
   wireIncomingCalls(peer);
   setTimeout(flushOutbox, 400); // resend anything that was queued while offline
   if (isFirstEverConnectionInRoom && localStorage.getItem('duo-hide-first-connect-info') !== '1'){
@@ -2781,14 +3282,21 @@ function setupConnHandlers(){
 }
 
 // ---------- CHAT HEADER ----------
+let lastAnnouncedConnState = null;
 function updateChatHeader(){
   $('ch-name').textContent = peerName || 'Partner';
-  $('ch-avatar').textContent = aLetter(peerName);
+  $('ch-avatar').innerHTML = peerAvatar ? `<img src="${peerAvatar}" alt="">` : esc(aLetter(peerName));
   $('ch-dot').classList.toggle('on', peerOnline);
   $('ch-dot').classList.toggle('connecting', isConnecting && !peerOnline);
   $('ch-sub').classList.toggle('connecting-text', isConnecting && !peerOnline);
   $('ch-sub').textContent = peerOnline ? 'Online' : (isConnecting ? 'Connecting…' : 'Offline');
   refreshHeaderNotifIcon();
+  const state = peerOnline ? 'online' : (isConnecting ? 'connecting' : 'offline');
+  if (state !== lastAnnouncedConnState){
+    lastAnnouncedConnState = state;
+    if (state === 'online') announce((peerName||'Your partner') + ' is now online');
+    else if (state === 'offline') announce((peerName||'Your partner') + ' went offline');
+  }
 }
 
 function refreshHeaderNotifIcon(){
@@ -2813,23 +3321,27 @@ $('conn-status-retry').addEventListener('click', () => {
 function handleData(data){
   switch(data.type){
     case 'message': {
-      const msg = { id:data.msgId, type:'text', text:data.text, reply:data.reply||null, from:'them', time:Date.now(), status:'received' };
+      const msg = { id:data.msgId, type:'text', text:data.text, reply:data.reply||null, from:'them', time:Date.now(), status:'received', selfDestruct: data.selfDestruct || undefined };
       messages.push(msg); saveMsgs(); appendMessage(msg);
       noteIncomingMessage();
+      announce('New message from ' + (peerName||'your partner') + ': ' + (data.text||'').slice(0,120));
       if (!isMuted){ playSound('receive'); vibrate(30); }
       sendDeliveryReceipt(msg.id);
       maybeShowInAppNotif(msg);
+      if (data.selfDestruct) scheduleSelfDestruct(msg.id, data.selfDestruct);
       break;
     }
     case 'image': case 'video': {
       const msg = { id: data.msgId || uid(), type:data.type, src:data.src, caption:data.caption||'', from:'them', time:Date.now(), status:'received' };
       messages.push(msg); saveMsgs(); appendMessage(msg); noteIncomingMessage();
+      announce((peerName||'Your partner') + ' sent a ' + (data.type === 'video' ? 'video' : 'photo'));
       if (!isMuted) playSound('receive');
       break;
     }
     case 'file': {
       const msg = { id: data.msgId || uid(), type:'file', name:data.name, size:data.size, src:data.src, from:'them', time:Date.now(), status:'received' };
       messages.push(msg); saveMsgs(); appendMessage(msg); noteIncomingMessage();
+      announce((peerName||'Your partner') + ' sent a file: ' + (data.name||''));
       if (!isMuted) playSound('receive');
       break;
     }
@@ -2837,6 +3349,14 @@ function handleData(data){
       const msg = { id: data.msgId || uid(), type:'audio', src:data.src, from:'them', time:Date.now(), status:'received' };
       messages.push(msg); saveMsgs(); appendMessage(msg); noteIncomingMessage();
       if (!isMuted) playSound('receive');
+      break;
+    }
+    case 'sticker': {
+      const msg = { id: data.msgId || uid(), type:'sticker', sticker:data.sticker, from:'them', time:Date.now(), status:'received', selfDestruct: data.selfDestruct || undefined };
+      messages.push(msg); saveMsgs(); appendMessage(msg); noteIncomingMessage();
+      if (!isMuted) playSound('receive');
+      sendDeliveryReceipt(msg.id);
+      if (data.selfDestruct) scheduleSelfDestruct(msg.id, data.selfDestruct);
       break;
     }
     case 'delivered': updateMsgStatus(data.msgId, 'delivered'); break;
@@ -2849,6 +3369,18 @@ function handleData(data){
     case 'leave-room': handlePartnerLeft(); break;
     case 'request-history-check': markVisibleAsRead(); break;
     case 'rename': peerName = data.name || peerName; localStorage.setItem('duo-peername', peerName); updateChatHeader(); updateCallNamesIfActive(); break;
+    case 'ping-quality': if (conn?.open) try{ conn.send({ type:'pong-quality' }) }catch(e){} break;
+    case 'pong-quality':
+      if (pingPendingAt && pingResolve){ pingResolve(Date.now() - pingPendingAt); pingPendingAt = null; pingResolve = null; }
+      break;
+    case 'screenshare-status':
+      toast(data.on ? '🖥️ ' + (peerName||'Your partner') + ' is sharing their screen' : '🖥️ ' + (peerName||'Your partner') + ' stopped sharing their screen');
+      break;
+    case 'avatar-update':
+      peerAvatar = data.avatar || '';
+      if (peerAvatar) localStorage.setItem('duo-peeravatar', peerAvatar); else localStorage.removeItem('duo-peeravatar');
+      updateChatHeader(); updateCallNamesIfActive();
+      break;
     case 'call-busy': toast('📵 ' + (peerName||'Partner') + ' is on another call'); endCall(); break;
     case 'pin-message': pinMessage(data.msgId, false); break;
     case 'unpin-message': unpinMessage(false); break;
@@ -2858,6 +3390,10 @@ function handleData(data){
 // New incoming message: jump to it if already near the bottom, otherwise
 // keep the scroll position and just bump the "new messages" counter/FAB.
 function noteIncomingMessage(){
+  if (document.hidden){
+    headerUnreadCount++;
+    updateHeaderUnreadBadge();
+  }
   if (userNearBottom){
     scrollToBottom();
   } else {
@@ -2868,7 +3404,39 @@ function noteIncomingMessage(){
   }
 }
 
+let headerUnreadCount = 0;
+function updateHeaderUnreadBadge(){
+  const badge = $('ch-unread-badge');
+  if (!badge) return;
+  if (headerUnreadCount > 0){ badge.textContent = headerUnreadCount > 9 ? '9+' : String(headerUnreadCount); badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+  if (headerUnreadCount > 0) document.title = `(${headerUnreadCount}) Hey`;
+  else document.title = 'Hey';
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden){ headerUnreadCount = 0; updateHeaderUnreadBadge(); }
+});
+
 function sendDeliveryReceipt(msgId){ if (conn?.open) conn.send({ type:'delivered', msgId }) }
+
+// ---------- CONNECTION QUALITY (round-trip latency over the data channel) ----------
+let pingPendingAt = null;
+let pingResolve = null;
+function measureConnectionQuality(){
+  const sub = $('settings-quality-sub');
+  if (!conn?.open){ if (sub) sub.textContent = 'Not connected'; return; }
+  pingPendingAt = Date.now();
+  try{ conn.send({ type:'ping-quality' }); }catch(e){}
+  pingResolve = (rtt) => {
+    if (!sub) return;
+    let label, dot;
+    if (rtt < 150){ label = 'Excellent'; dot = 'excellent'; }
+    else if (rtt < 400){ label = 'Good'; dot = 'good'; }
+    else { label = 'Poor'; dot = 'poor'; }
+    sub.innerHTML = `<span class="conn-quality"><span class="cq-dot ${dot}"></span>${label} · ${rtt}ms</span>`;
+  };
+  setTimeout(() => { if (pingResolve && sub && sub.textContent === 'Checking…') sub.textContent = 'Unable to measure'; }, 4000);
+}
 function sendReadReceipt(msgId){ if (conn?.open) conn.send({ type:'read', msgId }) }
 function markVisibleAsRead(){
   messages.filter(m=>m.from==='them' && m.status!=='read').forEach(m=>{ m.status='read'; sendReadReceipt(m.id) });
@@ -2986,19 +3554,22 @@ function bubbleInnerHTML(m){
       <div class="voice-dur">🎤</div>
     </div>`;
   }
+  if (m.type === 'sticker'){
+    return esc(m.sticker || '🙂');
+  }
   return '';
 }
 
 function messageRowHTML(m){
   const isMe = m.from === 'me';
   const isMedia = m.type==='image' || m.type==='video';
-  const bubbleClass = isMedia ? 'bubble media' : (m.type==='file' ? 'bubble' : (m.type==='audio' ? 'bubble' : 'bubble' + (m.reply ? ' with-reply' : '')));
+  const bubbleClass = m.type === 'sticker' ? 'bubble sticker-bubble' : (isMedia ? 'bubble media' : (m.type==='file' ? 'bubble' : (m.type==='audio' ? 'bubble' : 'bubble' + (m.reply ? ' with-reply' : ''))));
   return `
   <div class="msg-row ${isMe?'me':'them'}" data-mid="${m.id}">
     <div class="bubble-stack">
       <div class="${bubbleClass}">${bubbleInnerHTML(m)}</div>
       <div class="reaction-pill hidden" data-reaction-for="${m.id}"></div>
-      <div class="msg-meta">${m.edited ? '<span class="edited-tag">Edited</span>' : ''}<span>${fmtTime(m.time)}</span>${isMe ? tickIcon(m.status||'sent') : ''}</div>
+      <div class="msg-meta">${m.edited ? '<span class="edited-tag">Edited</span>' : ''}<span>${fmtTime(m.time)}</span>${isMe ? tickIcon(m.status||'sent') : ''}${m.selfDestruct ? `<span class="sd-badge" title="Disappears after ${SD_LABELS[m.selfDestruct]||m.selfDestruct+'s'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 3"/></svg>${SD_LABELS[m.selfDestruct]||m.selfDestruct+'s'}</span>` : ''}</div>
     </div>
   </div>`;
 }
@@ -3254,7 +3825,7 @@ function sendTypingSignal(on, kind){
 function showTypingIndicator(on, kind){
   const row = $('typing-row');
   const label = $('typing-label');
-  $('typing-av').textContent = aLetter(peerName);
+  $('typing-av').innerHTML = peerAvatar ? `<img src="${peerAvatar}" alt="">` : esc(aLetter(peerName));
   row.classList.toggle('hidden', !on);
   if (label) label.classList.toggle('hidden', kind !== 'recording');
   if (on) scrollToBottom();
@@ -3262,27 +3833,46 @@ function showTypingIndicator(on, kind){
 
 sendBtn.addEventListener('click', handleSendOrRecord);
 
+// Simple sliding-window rate limit: protects the connection (and your
+// partner's screen) from accidental rapid-fire sends — e.g. a stuck Enter
+// key or a script gone wrong. Generous enough to never bother normal typing.
+const MSG_RATE_LIMIT = 8;       // max messages
+const MSG_RATE_WINDOW_MS = 10000; // per 10 seconds
+let recentSendTimestamps = [];
+function isRateLimited(){
+  const now = Date.now();
+  recentSendTimestamps = recentSendTimestamps.filter(t => now - t < MSG_RATE_WINDOW_MS);
+  return recentSendTimestamps.length >= MSG_RATE_LIMIT;
+}
+function noteSend(){ recentSendTimestamps.push(Date.now()); }
+
 function handleSendOrRecord(){
   if (isRecording){ stopVoiceRecording(); return; }
   const text = msgInput.value.trim();
-  if (text) sendTextMessage(text);
+  if (text){
+    if (isRateLimited()){ toast('⏳ Sending too fast — wait a moment'); return; }
+    noteSend();
+    sendTextMessage(text);
+  }
   else startVoiceRecording();
 }
 
 function sendTextMessage(text){
   const replyData = replyingTo ? { name: replyingTo.from==='me'?myName:peerName, text: replyingTo.text.slice(0,80) } : null;
   const msgId = uid();
-  const msg = { id: msgId, type:'text', text, reply: replyData, from:'me', time:Date.now(), status: (conn?.open ? 'sent' : 'pending') };
+  const sd = selfDestructSecs;
+  const msg = { id: msgId, type:'text', text, reply: replyData, from:'me', time:Date.now(), status: (conn?.open ? 'sent' : 'pending'), selfDestruct: sd || undefined };
   messages.push(msg); saveMsgs(); appendMessage(msg); scrollToBottom();
   playSound('send');
   msgInput.value=''; msgInput.style.height='auto'; refreshSendBtnIcon();
   cancelReply();
   if (conn?.open){
-    try{ conn.send({ type:'message', text, reply: replyData, msgId }); }
+    try{ conn.send({ type:'message', text, reply: replyData, msgId, selfDestruct: sd || undefined }); }
     catch(e){ updateMsgStatus(msgId, 'failed'); toast('⚠️ Message failed to send — tap it to retry'); }
   } else {
     toast('⚠️ Not connected — message queued');
   }
+  if (sd) scheduleSelfDestruct(msgId, sd);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3304,15 +3894,42 @@ $('attach-btn').addEventListener('click', e => {
   e.stopPropagation();
   $('attach-menu').classList.toggle('show');
   $('emoji-picker').classList.remove('show');
+  $('gif-picker')?.classList.remove('show');
 });
 document.addEventListener('click', e => {
   if (!e.target.closest('#attach-menu') && !e.target.closest('#attach-btn')) $('attach-menu').classList.remove('show');
   if (!e.target.closest('#emoji-picker') && !e.target.closest('#emoji-btn')) $('emoji-picker').classList.remove('show');
+  if (!e.target.closest('#gif-picker') && !e.target.closest('#am-gif')) $('gif-picker')?.classList.remove('show');
 });
 
 $('am-image').addEventListener('click', () => { $('file-image').click(); $('attach-menu').classList.remove('show'); });
 $('am-video').addEventListener('click', () => { $('file-video').click(); $('attach-menu').classList.remove('show'); });
 $('am-doc').addEventListener('click', () => { $('file-doc').click(); $('attach-menu').classList.remove('show'); });
+
+// ════════════════════════════════════════════════════════════
+//  SELF-DESTRUCT MESSAGES — cycles Off -> 5s -> 30s -> 1min.
+//  Applies to the NEXT message(s) you send while it's active (text
+//  and stickers); tap again to turn it back off. Both sides delete
+//  the message locally once its timer elapses.
+// ════════════════════════════════════════════════════════════
+const SD_OPTIONS = [0, 5, 30, 60];
+const SD_LABELS = { 0:'Off', 5:'5s', 30:'30s', 60:'1 min' };
+function cycleSelfDestruct(){
+  const idx = SD_OPTIONS.indexOf(selfDestructSecs);
+  selfDestructSecs = SD_OPTIONS[(idx + 1) % SD_OPTIONS.length];
+  refreshSelfDestructUI();
+}
+function refreshSelfDestructUI(){
+  const label = $('am-selfdestruct-label'); if (label) label.textContent = 'Self-destruct: ' + SD_LABELS[selfDestructSecs];
+  $('composer').classList.toggle('sd-active', selfDestructSecs > 0);
+  if (selfDestructSecs > 0) toast('⏱️ Self-destruct armed: messages vanish after ' + SD_LABELS[selfDestructSecs]);
+}
+$('am-selfdestruct').addEventListener('click', () => { cycleSelfDestruct(); $('attach-menu').classList.remove('show'); });
+
+function scheduleSelfDestruct(msgId, secs){
+  if (!secs) return;
+  setTimeout(() => { removeMessageFromDom(msgId, false); }, secs * 1000);
+}
 
 // Photos are resized/recompressed client-side before they're stored or sent.
 // This shrinks typical phone photos (often 3-8MB) down to a few hundred KB,
@@ -3410,6 +4027,97 @@ $('pb-send').addEventListener('click', () => {
 });
 
 // ════════════════════════════════════════════════════════════
+//  DRAG & DROP FILE UPLOAD — dropping a file anywhere on the
+//  chat screen shows the dropzone overlay and routes it through
+//  the same compress/send/queue pipeline as the attach-menu
+//  pickers. A single dropped image gets the usual caption step;
+//  everything else (multiple files, videos, documents) sends
+//  immediately, same as picking them from the attach menu.
+// ════════════════════════════════════════════════════════════
+const chatScreenEl = $('screen-chat');
+let dragDepth = 0;
+function isFileDrag(e){ return e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files'); }
+chatScreenEl.addEventListener('dragenter', e => {
+  if (!isFileDrag(e)) return;
+  e.preventDefault();
+  dragDepth++;
+  $('dropzone-overlay').classList.add('show');
+});
+chatScreenEl.addEventListener('dragover', e => { if (isFileDrag(e)) e.preventDefault(); });
+chatScreenEl.addEventListener('dragleave', e => {
+  if (!isFileDrag(e)) return;
+  dragDepth = Math.max(0, dragDepth - 1);
+  if (dragDepth === 0) $('dropzone-overlay').classList.remove('show');
+});
+chatScreenEl.addEventListener('drop', e => {
+  if (!isFileDrag(e)) return;
+  e.preventDefault();
+  dragDepth = 0;
+  $('dropzone-overlay').classList.remove('show');
+  handleDroppedFiles(e.dataTransfer.files);
+});
+
+async function handleDroppedFiles(fileList){
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  if (files.length === 1 && files[0].type.startsWith('image/')){
+    const f = files[0];
+    const src = await compressImageForChat(f);
+    if (!src){ toast('⚠️ Could not read that image — try again'); return; }
+    pendingMedia = { src, kind:'image' };
+    $('pb-thumb').src = src;
+    $('pb-thumb').style.background = '';
+    $('pb-caption').value = '';
+    $('preview-bar').classList.add('show');
+    return;
+  }
+  for (const f of files) await sendDroppedFile(f);
+}
+
+function sendDroppedFile(file){
+  return new Promise(resolve => {
+    if (file.type.startsWith('image/')){
+      compressImageForChat(file).then(src => {
+        if (!src){ toast('⚠️ Could not read ' + file.name); resolve(); return; }
+        sendDirectMediaMessage('image', src); resolve();
+      });
+      return;
+    }
+    if (file.type.startsWith('video/')){
+      if (file.size > 25*1024*1024){ toast('⚠️ ' + file.name + ' is too large to send directly (max 25MB)'); resolve(); return; }
+      const reader = new FileReader();
+      reader.onerror = () => { toast('⚠️ Could not read ' + file.name); resolve(); };
+      reader.onload = ev => { sendDirectMediaMessage('video', ev.target.result); resolve(); };
+      reader.readAsDataURL(file);
+      return;
+    }
+    if (file.size > 30*1024*1024){ toast('⚠️ ' + file.name + ' is too large to send directly (max 30MB)'); resolve(); return; }
+    const reader = new FileReader();
+    reader.onerror = () => { toast('⚠️ Could not read ' + file.name); resolve(); };
+    reader.onload = ev => {
+      const msgId = uid();
+      const msg = { id:msgId, type:'file', name:file.name, size:fmtBytes(file.size), src:ev.target.result, from:'me', time:Date.now(), status: conn?.open?'sent':'pending' };
+      messages.push(msg); saveMsgs(); appendMessage(msg); scrollToBottom(); playSound('send');
+      if (conn?.open){
+        try{ conn.send({ type:'file', name:file.name, size:fmtBytes(file.size), src:ev.target.result, msgId }); }
+        catch(e){ updateMsgStatus(msgId, 'failed'); toast('⚠️ File failed to send — tap it to retry'); }
+      } else toast('⚠️ Not connected — file queued');
+      resolve();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function sendDirectMediaMessage(kind, src){
+  const msgId = uid();
+  const msg = { id:msgId, type:kind, src, caption:'', from:'me', time:Date.now(), status: conn?.open?'sent':'pending' };
+  messages.push(msg); saveMsgs(); appendMessage(msg); scrollToBottom(); playSound('send');
+  if (conn?.open){
+    try{ conn.send({ type:kind, src, caption:'', msgId }); }
+    catch(e){ updateMsgStatus(msgId, 'failed'); toast('⚠️ Failed to send — tap it to retry'); }
+  } else toast('⚠️ Not connected — ' + (kind==='image' ? 'photo' : 'video') + ' queued');
+}
+
+// ════════════════════════════════════════════════════════════
 //  EMOJI PICKER
 // ════════════════════════════════════════════════════════════
 const EMOJI_CATS = [
@@ -3445,12 +4153,130 @@ function renderEmojiGrid(){
     });
   });
 }
-buildEmojiPicker();
+let emojiPickerBuilt = false, stickerGridBuilt = false;
 $('emoji-btn').addEventListener('click', e => {
   e.stopPropagation();
+  if (!emojiPickerBuilt){ emojiPickerBuilt = true; buildEmojiPicker(); }
+  if (!stickerGridBuilt){ stickerGridBuilt = true; renderStickerGrid(); }
   $('emoji-picker').classList.toggle('show');
   $('attach-menu').classList.remove('show');
+  $('gif-picker')?.classList.remove('show');
 });
+
+// ════════════════════════════════════════════════════════════
+//  STICKER PACK — built from emoji compositions (no external
+//  image assets/IP needed), sent as their own oversized bubble
+//  type distinct from inline emoji-in-text.
+// ════════════════════════════════════════════════════════════
+const STICKER_PACK = ['😂','❤️','🔥','👍','🎉','😍','😭','🙏','😎','🥳','💯','👏','🤔','😴','🫶','🙌','😅','🤝','🥰','😱','🫡','😢','👋','✨'];
+function renderStickerGrid(){
+  const grid = $('sticker-grid');
+  grid.innerHTML = STICKER_PACK.map(s=>`<button class="ep-sticker" data-sticker="${s}">${s}</button>`).join('');
+  grid.querySelectorAll('.ep-sticker').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      sendStickerMessage(btn.dataset.sticker);
+      $('emoji-picker').classList.remove('show');
+    });
+  });
+}
+
+$('ep-mode-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.ep-mode-btn');
+  if (!btn) return;
+  document.querySelectorAll('.ep-mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const isSticker = btn.dataset.mode === 'sticker';
+  $('ep-cats').classList.toggle('hidden', isSticker);
+  $('ep-grid').classList.toggle('hidden', isSticker);
+  $('sticker-grid').classList.toggle('hidden', !isSticker);
+});
+
+function sendStickerMessage(sticker){
+  if (isRateLimited()){ toast('⏳ Sending too fast — wait a moment'); return; }
+  noteSend();
+  const msgId = uid();
+  const sd = selfDestructSecs;
+  const msg = { id: msgId, type:'sticker', sticker, from:'me', time:Date.now(), status: (conn?.open ? 'sent' : 'pending'), selfDestruct: sd || undefined };
+  messages.push(msg); saveMsgs(); appendMessage(msg); scrollToBottom();
+  playSound('send');
+  if (conn?.open){
+    try{ conn.send({ type:'sticker', sticker, msgId, selfDestruct: sd || undefined }); }
+    catch(e){ updateMsgStatus(msgId, 'failed'); toast('⚠️ Sticker failed to send — tap it to retry'); }
+  } else {
+    toast('⚠️ Not connected — sticker queued');
+  }
+  if (sd) scheduleSelfDestruct(msgId, sd);
+}
+
+// ════════════════════════════════════════════════════════════
+//  GIF PICKER — GIPHY trending/search, sent as a regular image
+//  message (a GIF is just an animated image — the existing image
+//  bubble/viewer/gallery code already handles it correctly).
+//  Uses GIPHY's public "beta" key so this works out of the box;
+//  swap GIPHY_API_KEY for your own free key from
+//  developers.giphy.com before real-world use — the beta key is
+//  shared/rate-limited across every app that hasn't set up a key.
+// ════════════════════════════════════════════════════════════
+const GIPHY_API_KEY = 'dc6zaTOxFJmzC';
+let gifPickerLoaded = false, gifSearchTimer = null, gifSearchAbort = null;
+
+function openGifPicker(){
+  $('gif-picker').classList.add('show');
+  $('attach-menu').classList.remove('show');
+  $('emoji-picker').classList.remove('show');
+  if (!gifPickerLoaded){ gifPickerLoaded = true; loadGifs(''); }
+  setTimeout(() => $('gif-search-inp')?.focus(), 80);
+}
+function closeGifPicker(){ $('gif-picker').classList.remove('show'); }
+
+async function loadGifs(query){
+  const grid = $('gif-grid');
+  grid.innerHTML = `<div class="gif-grid-msg">Loading…</div>`;
+  if (gifSearchAbort) try{ gifSearchAbort.abort() }catch(e){}
+  gifSearchAbort = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const url = query
+    ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=24&rating=pg-13`
+    : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=24&rating=pg-13`;
+  try{
+    const res = await fetch(url, gifSearchAbort ? { signal: gifSearchAbort.signal } : undefined);
+    const data = await res.json();
+    const items = data?.data || [];
+    if (!items.length){ grid.innerHTML = `<div class="gif-grid-msg">No GIFs found — try another search</div>`; return; }
+    grid.innerHTML = items.map(g => {
+      const src = g.images?.fixed_height_small?.url || g.images?.fixed_height?.url || g.images?.original?.url;
+      return src ? `<img src="${src}" alt="${esc(g.title||'GIF')}" loading="lazy" data-full="${g.images?.original?.url || src}">` : '';
+    }).join('');
+    grid.querySelectorAll('img').forEach(img => {
+      img.addEventListener('click', () => sendGifMessage(img.dataset.full));
+    });
+  }catch(e){
+    if (e?.name === 'AbortError') return;
+    grid.innerHTML = `<div class="gif-grid-msg">Couldn't load GIFs — check your connection</div>`;
+  }
+}
+$('am-gif').addEventListener('click', openGifPicker);
+$('gif-picker-close').addEventListener('click', closeGifPicker);
+$('gif-search-inp').addEventListener('input', e => {
+  clearTimeout(gifSearchTimer);
+  const q = e.target.value.trim();
+  gifSearchTimer = setTimeout(() => loadGifs(q), 380);
+});
+
+// Sends a GIF the same way as any other image — full outbox/resend
+// handling as any other photo, with no caption step in the way.
+function sendGifMessage(url){
+  if (!url) return;
+  if (isRateLimited()){ toast('⏳ Sending too fast — wait a moment'); return; }
+  noteSend();
+  const msgId = uid();
+  const msg = { id: msgId, type:'image', src: url, caption:'', from:'me', time:Date.now(), status: conn?.open ? 'sent' : 'pending' };
+  messages.push(msg); saveMsgs(); appendMessage(msg); scrollToBottom(); playSound('send');
+  if (conn?.open){
+    try{ conn.send({ type:'image', src:url, caption:'', msgId }); }
+    catch(e){ updateMsgStatus(msgId, 'failed'); toast('⚠️ GIF failed to send — tap it to retry'); }
+  } else toast('⚠️ Not connected — GIF queued');
+  closeGifPicker();
+}
 
 // ════════════════════════════════════════════════════════════
 //  VOICE RECORDING
@@ -4130,9 +4956,65 @@ document.addEventListener('keydown', e => {
   if (openModalEl){ openModalEl.classList.remove('show'); return; }
   if ($('img-viewer').classList.contains('show')){ $('img-viewer').classList.remove('show'); return; }
   if ($('page-overlay').classList.contains('show')){ closeSettingsPage(); return; }
+  if ($('gif-picker')?.classList.contains('show')){ closeGifPicker(); return; }
   $('attach-menu').classList.remove('show');
   $('emoji-picker').classList.remove('show');
 });
+
+// ════════════════════════════════════════════════════════════
+//  ACCESSIBILITY — COMPLETE KEYBOARD NAVIGATION
+//  1) Any element using role="button" (custom clickable <div>s like
+//     the avatar-edit FABs and the tappable peer header) becomes
+//     activatable with Enter or Space, matching native <button>
+//     behaviour, since divs don't fire "click" on keypress for free.
+//  2) A small reusable focus-trap keeps Tab/Shift+Tab cycling
+//     inside whichever modal/overlay is currently open, and returns
+//     focus to whatever triggered it once it closes — so keyboard
+//     users never get silently dropped behind an open dialog.
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest('[role="button"]');
+  if (!el) return;
+  e.preventDefault();
+  el.click();
+});
+
+const FOCUS_TRAP_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+let focusTrapEl = null, focusTrapReturnEl = null;
+function focusTrapKeydown(e){
+  if (e.key !== 'Tab' || !focusTrapEl) return;
+  const items = Array.from(focusTrapEl.querySelectorAll(FOCUS_TRAP_SELECTOR)).filter(n => n.offsetParent !== null);
+  if (!items.length) return;
+  const first = items[0], last = items[items.length - 1];
+  if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+}
+function startFocusTrap(container){
+  focusTrapEl = container;
+  focusTrapReturnEl = document.activeElement;
+  document.addEventListener('keydown', focusTrapKeydown, true);
+  setTimeout(() => {
+    const firstField = container.querySelector(FOCUS_TRAP_SELECTOR);
+    if (firstField) firstField.focus();
+  }, 60);
+}
+function endFocusTrap(){
+  document.removeEventListener('keydown', focusTrapKeydown, true);
+  focusTrapEl = null;
+  if (focusTrapReturnEl && document.body.contains(focusTrapReturnEl)) focusTrapReturnEl.focus();
+  focusTrapReturnEl = null;
+}
+// Observe every modal/overlay so a focus-trap engages the instant
+// any of them gains the "show" class — no need to touch every
+// individual open/close call site throughout the app.
+document.querySelectorAll('.modal-overlay, #page-overlay, #qr-scan-overlay').forEach(ov => {
+  new MutationObserver(() => {
+    if (ov.classList.contains('show')) startFocusTrap(ov);
+    else if (focusTrapEl === ov) endFocusTrap();
+  }).observe(ov, { attributes:true, attributeFilter:['class'] });
+});
+
 
 // ════════════════════════════════════════════════════════════
 //  SETTINGS / PROFILE PAGE
@@ -4144,6 +5026,54 @@ function openSettingsPage(){
 function closeSettingsPage(){ $('page-overlay').classList.remove('show'); }
 $('chat-peer-info').addEventListener('click', openSettingsPage);
 $('opt-settings').addEventListener('click', () => { closeModal('modal-chat-options'); openSettingsPage(); });
+$('opt-help').addEventListener('click', () => { closeModal('modal-chat-options'); openHelpPage(); });
+
+// ════════════════════════════════════════════════════════════
+//  HELP & SUPPORT — reuses the same #page-overlay shell as
+//  Settings (back button, Escape key, history handling all work
+//  for free). Static FAQ content; no external links/services
+//  since Duo has no backend or support team to route to.
+// ════════════════════════════════════════════════════════════
+function openHelpPage(){
+  $('page-title').textContent = 'Help & support';
+  $('page-body').innerHTML = `
+    <div class="set-section-title">Getting started</div>
+    <div class="card">
+      <p style="font-size:.84rem;color:var(--text-2);line-height:1.7;font-weight:500">
+        Hey Chat connects exactly two people, directly, with no server in between. One person creates a room and shares the code or link; the other joins with it. Once you're both in, the chat works like any messaging app — text, photos, voice notes, video calls.
+      </p>
+    </div>
+    <div class="set-section-title">Common questions</div>
+    <div class="card" style="padding:.2rem .6rem">
+      ${[
+        ['Why did my chat disappear?', 'Chat history lives only in your browser. If you clear site data, switch browsers/devices, or use auto-clear, that history is gone for good — there is no backup anywhere else.'],
+        ['Why can not I reconnect?', 'Both people need the app open for a room to stay alive — there is no server keeping it running for you. If your partner closed their tab, the room ends. Create a new one to keep chatting.'],
+        ['Is this actually private?', 'Yes — messages, photos, and calls travel directly between your two devices over an encrypted WebRTC connection. We can not see your messages even if we wanted to; there is nowhere for us to see them.'],
+        ['A third person tried to join my room — what happens?', 'Duo rooms are strictly one-to-one. Once two people are connected, the room locks and anyone else trying to join sees a this chat is full screen.'],
+        ['Can I use this on two devices at once?', 'No — a room only supports one connection per side. Switching devices mid-chat will disconnect whichever device was previously connected.'],
+      ].map(([q,a], i) => `
+        <div class="opt-item" data-faq="${i}" style="cursor:pointer">
+          <div class="opt-icon" style="background:var(--surface-3);color:var(--text-2)">${svgIc('M12 6v6l4 2')}</div>
+          <span class="opt-label">${esc(q)}</span>
+        </div>
+        <div class="hidden" id="faq-ans-${i}" style="padding:0 .9rem .9rem 3.2rem;font-size:.8rem;color:var(--text-2);line-height:1.6">${esc(a)}</div>
+        ${i < 4 ? '<div class="ctx-divider"></div>' : ''}
+      `).join('')}
+    </div>
+    <div class="set-section-title">Still stuck?</div>
+    <div class="privacy-note">
+      ${svgIc('M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z')}
+      <div>Since there's no account or server, we can't look up your chat or "reset" anything remotely. Most issues are fixed by both people closing and reopening the app, then creating a fresh room.</div>
+    </div>
+  `;
+  $('page-body').querySelectorAll('[data-faq]').forEach(row => {
+    row.addEventListener('click', () => {
+      const ans = $('faq-ans-' + row.dataset.faq);
+      if (ans) ans.classList.toggle('hidden');
+    });
+  });
+  $('page-overlay').classList.add('show');
+}
 $('page-close-btn').addEventListener('click', closeSettingsPage);
 
 function svgIc(path){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="${path}"/></svg>` }
@@ -4157,13 +5087,24 @@ function buildSettingsPage(){
     : 'Get notified about new messages';
   $('page-body').innerHTML = `
     <div class="profile-hero">
-      <div class="profile-av" id="settings-av">${esc(aLetter(myName))}</div>
+      <div id="settings-av-wrap">
+        <div class="profile-av" id="settings-av">${myAvatar ? `<img src="${myAvatar}" alt="">` : esc(aLetter(myName))}</div>
+        <div class="av-edit-fab" id="settings-av-edit-btn" role="button" tabindex="0" aria-label="Change profile photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        </div>
+      </div>
       <div class="profile-name">${esc(myName || 'You')}</div>
       <div class="profile-status"><span class="status-dot live"></span>This device</div>
-      <button class="btn btn-ghost btn-sm" id="settings-edit-name-btn" style="margin-top:.7rem;width:auto">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.12 2.12 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Edit name
-      </button>
+      <div style="display:flex;gap:.4rem;justify-content:center;margin-top:.5rem;flex-wrap:wrap">
+        <span class="privacy-badge">${svgIc('M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z')}Encrypted link</span>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:.7rem">
+        <button class="btn btn-ghost btn-sm" id="settings-edit-name-btn" style="width:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.12 2.12 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit name
+        </button>
+        ${myAvatar ? `<button class="btn btn-ghost btn-sm" id="settings-remove-av-btn" style="width:auto">Remove photo</button>` : ''}
+      </div>
     </div>
 
     <div class="set-section-title">Appearance</div>
@@ -4171,6 +5112,42 @@ function buildSettingsPage(){
       <button class="room-tab" data-theme="light">☀️ Light</button>
       <button class="room-tab" data-theme="dark">🌙 Dark</button>
       <button class="room-tab" data-theme="system">💻 Auto</button>
+    </div>
+
+    <div class="set-section-title">Chat bubble color</div>
+    <div class="card" style="padding:.85rem .6rem">
+      <div id="bubble-theme-grid" style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center"></div>
+    </div>
+
+    <div class="set-section-title">Accessibility</div>
+    <div class="card" style="padding:.2rem .6rem">
+      <div class="toggle-row" style="flex-direction:column;align-items:stretch;gap:.5rem;padding:.85rem 0">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="toggle-info" style="flex:none"><div class="toggle-label">Text size</div><div class="toggle-sub" id="settings-fontsize-sub">Default</div></div>
+        </div>
+        <input type="range" id="settings-fontsize-range" min="0" max="4" step="1" value="1" style="width:100%">
+      </div>
+      <div class="ctx-divider"></div>
+      <div class="toggle-row">
+        <div class="opt-icon" style="background:var(--surface-3);color:var(--text)">${svgIc('M12 3v18M3 12h18')}</div>
+        <div class="toggle-info"><div class="toggle-label">High contrast</div><div class="toggle-sub">Stronger borders and text contrast</div></div>
+        <button class="switch" id="settings-contrast-toggle"></button>
+      </div>
+      <div class="ctx-divider"></div>
+      <div class="toggle-row">
+        <div class="opt-icon" style="background:var(--surface-3);color:var(--text)">${svgIc('M13 2L3 14h9l-1 8 10-12h-9l1-8z')}</div>
+        <div class="toggle-info"><div class="toggle-label">Reduce motion</div><div class="toggle-sub">Turn off animations and transitions</div></div>
+        <button class="switch" id="settings-motion-toggle"></button>
+      </div>
+    </div>
+
+    <div class="set-section-title">Privacy &amp; security</div>
+    <div class="card" style="padding:.2rem .6rem">
+      <div class="toggle-row">
+        <div class="opt-icon" style="background:var(--danger-soft);color:var(--danger)">${svgIc('M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z')}</div>
+        <div class="toggle-info"><div class="toggle-label">Auto-disconnect when idle</div><div class="toggle-sub">Warns then disconnects after ~10 min of no activity</div></div>
+        <button class="switch" id="settings-idledisconnect-toggle"></button>
+      </div>
     </div>
 
     <div class="set-section-title">Sound &amp; notifications</div>
@@ -4228,6 +5205,20 @@ function buildSettingsPage(){
         <div class="toggle-info"><div class="toggle-label">Status</div><div class="toggle-sub" id="settings-conn-sub">${peerOnline ? 'Connected to ' + esc(peerName||'partner') : (reconnecting ? 'Reconnecting…' : 'Offline')}</div></div>
         ${(!peerOnline && myRole==='guest') ? `<button class="btn btn-ghost btn-sm" id="settings-reconnect-btn" style="width:auto;padding:.45rem .9rem">Retry</button>` : ''}
       </div>
+      ${peerOnline ? `
+      <div class="ctx-divider"></div>
+      <div class="toggle-row">
+        <div class="opt-icon" style="background:var(--surface-3);color:var(--text)">${svgIc('M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v2')}</div>
+        <div class="toggle-info"><div class="toggle-label">Connection quality</div><div class="toggle-sub" id="settings-quality-sub">Checking…</div></div>
+      </div>
+      <div class="ctx-divider"></div>
+      <div class="toggle-row" style="flex-direction:column;align-items:stretch;gap:.3rem">
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div class="opt-icon" style="background:var(--online);color:#fff;flex-shrink:0">${svgIc('M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z')}</div>
+          <div class="toggle-info"><div class="toggle-label">Verify this connection</div><div class="toggle-sub">Compare codes out loud to rule out a man-in-the-middle</div></div>
+        </div>
+        <div id="settings-fingerprint-display" style="font-family:'Manrope';font-weight:800;font-size:1.3rem;letter-spacing:.08em;text-align:center;padding:.6rem;background:var(--surface-2);border-radius:var(--radius-sm);margin-top:.3rem">––</div>
+      </div>` : ''}
     </div>
 
     <div class="opt-list" style="margin-top:.5rem">
@@ -4237,15 +5228,28 @@ function buildSettingsPage(){
       </button>
     </div>
 
-    <div class="set-section-title">About</div>
-    <div class="card">
-      <p style="font-size:.82rem;color:var(--text-2);line-height:1.6;font-weight:500">Duo connects your two devices directly over an encrypted WebRTC link. There's no server in the middle storing your messages, photos, or calls — closing both tabs or leaving the room erases it for good.</p>
-      <p style="font-size:.7rem;color:var(--text-3);font-weight:600;margin-top:.7rem;text-align:center" id="settings-storage-label">Storage used: calculating…</p>
+    <div class="set-section-title">About &amp; privacy</div>
+    <div class="privacy-note" style="margin-bottom:.6rem">
+      ${svgIc('M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z')}
+      <div><b style="color:var(--text)">Direct, encrypted connection.</b> Messages, photos, and calls travel over a WebRTC link encrypted browser-to-browser (DTLS/SRTP) straight to your partner's device — never through Anthropic or any app server in between.</div>
+    </div>
+    <div class="privacy-note">
+      ${svgIc('M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z')}
+      <div><b style="color:var(--text)">Nothing is logged on a server.</b> Chat history lives only in this browser's own storage on each device. Leaving the room, clearing site data, or auto-clear erases it for good — there's no copy anywhere else to recover.</div>
+    </div>
+    <div class="card" style="margin-top:.8rem">
+      <p style="font-size:.7rem;color:var(--text-3);font-weight:600;text-align:center" id="settings-storage-label">Storage used: calculating…</p>
       <p style="font-size:.7rem;color:var(--text-3);font-weight:700;margin-top:.4rem;text-align:center;letter-spacing:.03em">DUO · VERSION 1.1</p>
     </div>
   `;
   syncSettingsToggles();
   getStorageUsageLabel().then(label => { const el = $('settings-storage-label'); if (el) el.textContent = 'Storage used: ' + label; });
+  if (peerOnline && peer?.id && conn?.peer){
+    computeConnectionFingerprint(peer.id, conn.peer).then(code => {
+      const el = $('settings-fingerprint-display'); if (el) el.textContent = code;
+    });
+    measureConnectionQuality();
+  }
 }
 
 function syncSettingsToggles(){
@@ -4258,6 +5262,20 @@ function syncSettingsToggles(){
   const sRow = $('settings-clear-interval-row'); if (sRow) sRow.classList.toggle('hidden', !autoClear);
   const sSub = $('settings-autoclear-sub'); if (sSub) sSub.textContent = autoClear ? 'Erase messages every ' + getIntervalLabel(autoClearMins) : 'Tap to enable auto-clear';
   refreshNotifToggleUI();
+
+  const contrastT = $('settings-contrast-toggle'); if (contrastT) contrastT.classList.toggle('on', highContrast);
+  const motionT = $('settings-motion-toggle'); if (motionT) motionT.classList.toggle('on', reduceMotion);
+  const idleT = $('settings-idledisconnect-toggle'); if (idleT) idleT.classList.toggle('on', idleDisconnectEnabled);
+  const fRange = $('settings-fontsize-range'); if (fRange) fRange.value = String(fontScaleIdx);
+  const fSub = $('settings-fontsize-sub'); if (fSub) fSub.textContent = FONT_SCALE_LABELS[fontScaleIdx] ?? 'Default';
+
+  const grid = $('bubble-theme-grid');
+  if (grid){
+    grid.innerHTML = Object.entries(BUBBLE_THEMES).map(([key, t]) => `
+      <button class="bubble-swatch${bubbleTheme === key ? ' active' : ''}" data-bubble="${key}" title="${esc(t.label)}"
+        style="width:2.3rem;height:2.3rem;border-radius:50%;background:${t.me};border:2.5px solid ${bubbleTheme===key ? 'var(--text)' : 'transparent'};cursor:pointer"></button>
+    `).join('');
+  }
 }
 
 function refreshNotifToggleUI(){
@@ -4350,7 +5368,107 @@ $('page-body').addEventListener('click', e => {
     });
     return;
   }
+  if (e.target.closest('#settings-av-edit-btn')){ $('file-avatar').click(); return; }
+  if (e.target.closest('#settings-remove-av-btn')){
+    myAvatar = '';
+    localStorage.removeItem('duo-avatar');
+    buildSettingsPage();
+    refreshMyAvatarEverywhere();
+    toast('🗑️ Profile photo removed');
+    return;
+  }
+  if (e.target.closest('#settings-contrast-toggle')){
+    highContrast = !highContrast;
+    localStorage.setItem('duo-contrast', highContrast ? '1' : '0');
+    applyAccessibilityPrefs();
+    syncSettingsToggles();
+    return;
+  }
+  if (e.target.closest('#settings-motion-toggle')){
+    reduceMotion = !reduceMotion;
+    localStorage.setItem('duo-motion', reduceMotion ? '1' : '0');
+    applyAccessibilityPrefs();
+    syncSettingsToggles();
+    return;
+  }
+  if (e.target.closest('#settings-idledisconnect-toggle')){
+    idleDisconnectEnabled = !idleDisconnectEnabled;
+    localStorage.setItem('duo-idledisconnect', idleDisconnectEnabled ? '1' : '0');
+    if (idleDisconnectEnabled){ noteActivity(); scheduleIdleCheck(); } else { clearTimeout(idleWarnTimer); }
+    syncSettingsToggles();
+    toast(idleDisconnectEnabled ? '🔒 Auto-disconnect enabled' : 'Auto-disconnect turned off');
+    return;
+  }
+  const bubbleBtn = e.target.closest('[data-bubble]');
+  if (bubbleBtn){
+    bubbleTheme = bubbleBtn.dataset.bubble;
+    localStorage.setItem('duo-bubbletheme', bubbleTheme);
+    applyBubbleTheme();
+    syncSettingsToggles();
+    return;
+  }
 });
+
+$('settings-fontsize-range')?.addEventListener('input', e => {}); // placeholder so delegated 'input' below always has a target
+$('page-body').addEventListener('input', e => {
+  if (e.target.id === 'settings-fontsize-range'){
+    fontScaleIdx = parseInt(e.target.value, 10);
+    localStorage.setItem('duo-fontscale', String(fontScaleIdx));
+    applyAccessibilityPrefs();
+    const fSub = $('settings-fontsize-sub'); if (fSub) fSub.textContent = FONT_SCALE_LABELS[fontScaleIdx] ?? 'Default';
+  }
+});
+
+// ---------- PROFILE PHOTO (avatar upload) ----------
+// Square-cropped, downscaled to a small data URL (kept tiny since it's
+// stored in localStorage and also handed to the partner over the data
+// channel so they see it too — no server upload involved either way).
+function compressAvatarImage(file){
+  const DIM = 256, QUALITY = 0.85;
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onerror = () => resolve(null);
+    reader.onload = ev => {
+      const img = new Image();
+      img.onerror = () => resolve(null);
+      img.onload = () => {
+        try{
+          const side = Math.min(img.width, img.height);
+          const sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+          const canvas = document.createElement('canvas');
+          canvas.width = DIM; canvas.height = DIM;
+          canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, DIM, DIM);
+          resolve(canvas.toDataURL('image/jpeg', QUALITY));
+        }catch(e){ resolve(null); }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function refreshMyAvatarEverywhere(){
+  const html = myAvatar ? `<img src="${myAvatar}" alt="">` : esc(aLetter(myName));
+  const av = $('settings-av'); if (av) av.innerHTML = html;
+  const sp = $('setup-avatar-preview'); if (sp) sp.innerHTML = myAvatar ? `<img src="${myAvatar}" alt="">` : esc(aLetter(myName));
+  // Tell the partner if we're already connected, so their UI updates live too
+  if (conn?.open) try{ conn.send({ type:'avatar-update', avatar: myAvatar }) }catch(e){}
+}
+
+$('file-avatar').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value=''; if (!f) return;
+  if (!f.type.startsWith('image/')){ toast('⚠️ Please choose an image file'); return; }
+  const dataUrl = await compressAvatarImage(f);
+  if (!dataUrl){ toast('⚠️ Could not read that image — try again'); return; }
+  myAvatar = dataUrl;
+  localStorage.setItem('duo-avatar', dataUrl);
+  refreshMyAvatarEverywhere();
+  toast('✅ Profile photo updated');
+});
+
+$('setup-av-edit-btn')?.addEventListener('click', () => $('file-avatar').click());
+$('setup-av-edit-btn')?.addEventListener('keydown', e => { if (e.key==='Enter' || e.key===' '){ e.preventDefault(); $('file-avatar').click(); } });
+
 
 // ---------- EDIT NAME ----------
 const editNameInp = $('edit-name-inp');
@@ -4385,10 +5503,11 @@ $('edit-name-save-btn').addEventListener('click', () => {
 
 function updateCallNamesIfActive(){
   if (!activeCall) return;
+  const avHtml = peerAvatar ? `<img src="${peerAvatar}" alt="">` : esc(aLetter(peerName));
   $('vc-name').textContent = peerName || 'Partner';
-  $('vc-av').textContent = aLetter(peerName);
+  $('vc-av').innerHTML = avHtml;
   $('vc-video-name').textContent = peerName || 'Partner';
-  $('vc-video-av').textContent = aLetter(peerName);
+  $('vc-video-av').innerHTML = avHtml;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -4455,6 +5574,7 @@ function openMessageSearch(){
   setTimeout(() => { const inp = $('search-msg-inp'); if (inp) inp.focus(); }, 280);
 }
 $('opt-search').addEventListener('click', () => { closeModal('modal-chat-options'); openMessageSearch(); });
+$('ch-search-btn').addEventListener('click', openMessageSearch);
 
 function searchIconSVG(path){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="${path}"/></svg>` }
 
@@ -4547,15 +5667,28 @@ function callModalId(kind){ return kind === 'video' ? 'video-call-modal' : 'voic
 
 function paintCallUI(kind, status){
   const name = peerName || 'Partner';
-  const letter = aLetter(peerName);
+  const avHtml = peerAvatar ? `<img src="${peerAvatar}" alt="">` : esc(aLetter(peerName));
   if (kind === 'video'){
     $('vc-video-name').textContent = name;
-    $('vc-video-av').textContent = letter;
+    $('vc-video-av').innerHTML = avHtml;
     $('vc-video-status').textContent = status;
   } else {
     $('vc-name').textContent = name;
-    $('vc-av').textContent = letter;
+    $('vc-av').innerHTML = avHtml;
     $('vc-status').textContent = status;
+  }
+  // Show a short verification code once the call is actually connected —
+  // both sides compute it independently from their peer IDs, so reading
+  // it aloud to compare confirms you're really talking to each other.
+  if (status === 'Connected' && peer?.id && conn?.peer){
+    computeConnectionFingerprint(peer.id, conn.peer).then(code => {
+      const shortCode = code.replace(/\s/g,'').slice(0,3);
+      const el1 = $('vc-verify-code'); if (el1) el1.textContent = '🔒 ' + shortCode;
+      const el2 = $('vc-video-verify-code'); if (el2) el2.textContent = '🔒 ' + shortCode;
+    });
+  } else {
+    const el1 = $('vc-verify-code'); if (el1) el1.textContent = '';
+    const el2 = $('vc-video-verify-code'); if (el2) el2.textContent = '';
   }
 }
 
@@ -4621,9 +5754,10 @@ function wireIncomingCalls(p){
     const kind = incomingCall.metadata?.kind === 'video' ? 'video' : 'audio';
     callKind = kind;
     $('cb-name').textContent = peerName || incomingCall.metadata?.name || 'Someone';
-    $('cb-av').textContent = aLetter(peerName || incomingCall.metadata?.name);
+    $('cb-av').innerHTML = peerAvatar ? `<img src="${peerAvatar}" alt="">` : esc(aLetter(peerName || incomingCall.metadata?.name));
     $('cb-sub').textContent = kind === 'video' ? 'Incoming video call' : 'Incoming voice call';
     $('call-banner').classList.add('show');
+    announce((kind === 'video' ? 'Incoming video call' : 'Incoming voice call') + ' from ' + (peerName || incomingCall.metadata?.name || 'someone'));
     startRing();
     vibrate(40);
     incomingCall.on('close', () => {
@@ -4689,6 +5823,9 @@ function endCall(){
   if (localStream){ localStream.getTracks().forEach(t=>{ try{ t.stop() }catch(e){} }); localStream = null; }
   clearInterval(callTimer); callTimer = null; callSecs = 0;
   stopRing();
+  isScreenSharing = false;
+  $('vcv-screenshare-btn')?.classList.remove('active-state');
+  $('screenshare-warning').classList.add('hidden');
   $('call-banner').classList.remove('show');
   $('vc-remote-video').srcObject = null;
   $('vc-local-video').srcObject = null;
@@ -4742,6 +5879,63 @@ $('vcv-flip-btn').addEventListener('click', async () => {
     $('vc-local-video').srcObject = localStream;
   }catch(e){ toast('📷 Could not switch camera'); }
 });
+
+// ════════════════════════════════════════════════════════════
+//  SCREEN SHARE — swaps the outgoing video track for a captured
+//  screen/window/tab, same replaceTrack approach as camera flip.
+//  Toggling back restores the regular camera feed.
+// ════════════════════════════════════════════════════════════
+let isScreenSharing = false;
+let camStreamBeforeShare = null;
+$('vcv-screenshare-btn').addEventListener('click', async () => {
+  if (!activeCall || callKind !== 'video') return;
+  if (!isScreenSharing){
+    let screenStream;
+    try{
+      screenStream = await navigator.mediaDevices.getDisplayMedia({ video:true, audio:false });
+    }catch(e){ return; } // user cancelled the share picker — no toast needed
+    const screenTrack = screenStream.getVideoTracks()[0];
+    const pc = activeCall.peerConnection;
+    const sender = pc && pc.getSenders().find(s => s.track && s.track.kind === 'video');
+    if (sender) await sender.replaceTrack(screenTrack);
+    camStreamBeforeShare = localStream.getVideoTracks()[0];
+    localStream.removeTrack(camStreamBeforeShare);
+    localStream.addTrack(screenTrack);
+    $('vc-local-video').srcObject = localStream;
+    $('vcv-screenshare-btn').classList.add('active-state');
+    isScreenSharing = true;
+    $('screenshare-warning').classList.remove('hidden');
+    toast('🖥️ Sharing your screen — ' + (peerName||'your partner') + ' can see it now');
+    announce('You are now sharing your screen with ' + (peerName||'your partner') + '.');
+    if (conn?.open) try{ conn.send({ type:'screenshare-status', on:true }) }catch(e){}
+    // If the user stops sharing via the browser's own "Stop sharing" control
+    screenTrack.addEventListener('ended', () => { if (isScreenSharing) stopScreenShare(); });
+  } else {
+    stopScreenShare();
+  }
+});
+async function stopScreenShare(){
+  if (!isScreenSharing) return;
+  try{
+    const camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode: camFacing }, audio:false });
+    const camTrack = camStream.getVideoTracks()[0];
+    const pc = activeCall?.peerConnection;
+    const sender = pc && pc.getSenders().find(s => s.track && s.track.kind === 'video');
+    if (sender) await sender.replaceTrack(camTrack);
+    const screenTrack = localStream.getVideoTracks()[0];
+    if (screenTrack){ localStream.removeTrack(screenTrack); try{ screenTrack.stop() }catch(e){} }
+    localStream.addTrack(camTrack);
+    $('vc-local-video').srcObject = localStream;
+  }catch(e){ /* camera unavailable when restoring — local preview just stays blank */ }
+  $('vcv-screenshare-btn').classList.remove('active-state');
+  isScreenSharing = false;
+  $('screenshare-warning').classList.add('hidden');
+  toast('🖥️ Screen sharing stopped');
+  announce('You stopped sharing your screen.');
+  if (conn?.open) try{ conn.send({ type:'screenshare-status', on:false }) }catch(e){}
+}
+$('ssw-stop-btn').addEventListener('click', stopScreenShare);
+
 
 </script>
 </body>
